@@ -11,6 +11,7 @@ let canvas, webgl, renderer;
 
 // Objet global WebGL
 webgl = {};
+window.webgl = webgl;
 
 // Création du canvas
 canvas = document.createElement('canvas');
@@ -40,6 +41,13 @@ async function init() {
         showWelcomeMessage();
 
         console.log('✅ Globe F1 2025 initialisé avec succès !');
+
+        // AJOUTER CES LIGNES :
+        window.webgl = webgl;
+        window.globe = webgl.globe;
+        window.markers = webgl.globe?.circuitMarkers;
+
+        console.log('🧪 Objets debug exposés : window.webgl, window.globe, window.markers');
 
     } catch (error) {
         console.error('❌ Erreur lors de l\'initialisation:', error);

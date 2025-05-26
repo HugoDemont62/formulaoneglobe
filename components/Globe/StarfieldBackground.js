@@ -1,4 +1,4 @@
-// components/Globe/StarfieldBackground.js
+// components/Globe/StarfieldBackground.js - Import corrigé
 import {
   SphereGeometry,
   MeshBasicMaterial,
@@ -8,9 +8,12 @@ import {
   BufferAttribute,
   PointsMaterial,
   Points,
-  Color
+  Color,
+  TextureLoader,
+  LinearMipMapLinearFilter,
+  LinearFilter,
+  RepeatWrapping
 } from 'three';
-import * as THREE from 'three';
 
 /**
  * Classe pour créer un arrière-plan étoilé immersif
@@ -24,77 +27,71 @@ export default class StarfieldBackground {
   }
 
   /**
-   * Crée un champ d'étoiles avec texture si disponible, sinon avec des particules
+   * Crée un champ d'étoiles - Force l'utilisation de la texture
    */
   createStarfield() {
-    // D'abord essayer de charger une texture de fond étoilé
-    this.tryLoadStarfieldTexture();
+    // Forcer l'utilisation de ta texture d'étoiles
+    this.loadYourStarTexture();
   }
 
   /**
-   * Essaie de charger une texture de champ d'étoiles
+   * Charge directement ta texture d'étoiles
    */
-  async tryLoadStarfieldTexture() {
-    const textureLoader = new (await import('three')).TextureLoader();
+  loadYourStarTexture() {
+    const textureLoader = new TextureLoader();
 
-    // Chemins possibles pour la texture de fond étoilé
-    const possiblePaths = [
-      './assets/milkyway.webp',
-    ];
+    // REMPLACE par le nom exact de ton fichier d'étoiles
+    const starTexturePath = './assets/milkyway.webp'; // 🔄 CHANGE ÇA !
 
-    this.tryLoadStarTexture(textureLoader, possiblePaths, 0);
-  }
-
-  /**
-   * Essaie de charger les textures d'étoiles dans l'ordre
-   */
-  tryLoadStarTexture(textureLoader, paths, index) {
-    if (index >= paths.length) {
-      console.log('✨ Création du champ d\'étoiles par particules');
-      this.createParticleStarfield();
-      return;
-    }
-
-    const currentPath = paths[index];
-    console.log(`🌌 Tentative chargement texture étoiles: ${currentPath}`);
+    console.log(`🌌 Chargement de ta texture: ${starTexturePath}`);
 
     textureLoader.load(
-      currentPath,
+      starTexturePath,
       (texture) => {
-        // Correction du filtrage et des mipmaps
+        // Configuration optimale pour ta texture
         texture.generateMipmaps = true;
-        texture.minFilter = THREE.LinearMipMapLinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
+        texture.minFilter = LinearMipMapLinearFilter;
+        texture.magFilter = LinearFilter;
+        texture.wrapS = RepeatWrapping;
+        texture.wrapT = RepeatWrapping;
         texture.needsUpdate = true;
 
-        // Succès - créer la skybox avec texture
+        // Créer la skybox avec ta texture
         this.createTexturedStarfield(texture);
-        console.log(`✅ Texture étoiles chargée: ${currentPath}`);
+        console.log(`✅ Ta texture d'étoiles chargée avec succès !`);
       },
-      undefined,
+      (progress) => {
+        console.log(`📈 Chargement texture: ${Math.round(progress.loaded / progress.total * 100)}%`);
+      },
       (error) => {
-        // Échec - essayer le suivant
-        console.warn(`⚠️ Échec texture étoiles: ${currentPath}`);
-        this.tryLoadStarTexture(textureLoader, paths, index + 1);
+        console.error(`❌ Erreur chargement texture: ${starTexturePath}`, error);
+        console.log('🔄 Utilisation du fallback particules...');
+        this.createParticleStarfield();
       }
     );
   }
 
   /**
-   * Crée un champ d'étoiles avec texture
+   * Crée un champ d'étoiles avec ta texture
    */
   createTexturedStarfield(texture) {
-    const skyGeometry = new SphereGeometry(100, 64, 64);
+    const skyGeometry = new SphereGeometry(150, 64, 64); // Plus grand pour meilleur effet
 
     const skyMaterial = new MeshBasicMaterial({
       map: texture,
-      side: BackSide // Rendu à l'intérieur de la sphère
+      side: BackSide, // Rendu à l'intérieur de la sphère
+      transparent: false,
+      opacity: 1.0
     });
 
     this.starfield = new Mesh(skyGeometry, skyMaterial);
-    this.starfield.rotation.x = Math.PI; // Orientation correcte
+
+    // Orientation pour que ta texture soit dans le bon sens
+    this.starfield.rotation.x = 0;
+    this.starfield.rotation.y = 0;
+    this.starfield.rotation.z = 0;
+
+    console.log('🌌 Skybox avec ta texture créée');
   }
 
   /**
@@ -102,7 +99,7 @@ export default class StarfieldBackground {
    */
   createParticleStarfield() {
     const starsGeometry = new BufferGeometry();
-    const starsCount = 3000;
+    const starsCount = 2000; // Réduit pour de meilleures performances
 
     const positions = new Float32Array(starsCount * 3);
     const colors = new Float32Array(starsCount * 3);
@@ -121,7 +118,7 @@ export default class StarfieldBackground {
       const i3 = i * 3;
 
       // Position aléatoire sur une sphère
-      const radius = 50;
+      const radius = 80; // Plus loin pour éviter les conflits
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
 
@@ -140,50 +137,48 @@ export default class StarfieldBackground {
     starsGeometry.setAttribute('color', new BufferAttribute(colors, 3));
 
     const starsMaterial = new PointsMaterial({
-      size: 0.5,
+      size: 1.0,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.8,
+      sizeAttenuation: false // Taille constante
     });
 
     this.starfield = new Points(starsGeometry, starsMaterial);
+    console.log('✨ Champ d\'étoiles particules créé');
   }
 
   /**
    * Crée une skybox simple en tant qu'alternative
-   * Utilisée si on veut un arrière-plan plus simple
    */
   createSimpleSkybox() {
-    const skyGeometry = new SphereGeometry(80, 32, 32);
+    const skyGeometry = new SphereGeometry(90, 32, 32);
 
     // Gradient simple du noir vers le bleu foncé
     const skyMaterial = new MeshBasicMaterial({
       color: new Color(0x000011), // Bleu très foncé
-      side: BackSide, // Rendu à l'intérieur de la sphère
+      side: BackSide,
       transparent: true,
       opacity: 0.8
     });
 
     this.starfield = new Mesh(skyGeometry, skyMaterial);
-
     console.log('🌌 Skybox simple créée');
   }
 
   /**
    * Met à jour l'animation du champ d'étoiles
-   * @param {number} time - Temps pour l'animation
    */
   update(time) {
     if (this.starfield) {
       // Rotation très lente pour donner l'impression de mouvement cosmique
       this.starfield.rotation.y += this.rotationSpeed;
-      this.starfield.rotation.x += this.rotationSpeed * 0.5;
+      this.starfield.rotation.x += this.rotationSpeed * 0.3;
     }
   }
 
   /**
    * Retourne le mesh du champ d'étoiles
-   * @returns {Points|Mesh} L'objet Three.js du champ d'étoiles
    */
   getMesh() {
     return this.starfield;
@@ -191,7 +186,6 @@ export default class StarfieldBackground {
 
   /**
    * Change la vitesse de rotation du champ d'étoiles
-   * @param {number} speed - Nouvelle vitesse de rotation
    */
   setRotationSpeed(speed) {
     this.rotationSpeed = speed;
@@ -199,11 +193,26 @@ export default class StarfieldBackground {
 
   /**
    * Active/désactive la visibilité du champ d'étoiles
-   * @param {boolean} visible - Visibilité
    */
   setVisible(visible) {
     if (this.starfield) {
       this.starfield.visible = visible;
+    }
+  }
+
+  /**
+   * Change le style du champ d'étoiles
+   */
+  setStyle(style) {
+    switch(style) {
+      case 'particles':
+        this.createParticleStarfield();
+        break;
+      case 'skybox':
+        this.createSimpleSkybox();
+        break;
+      default:
+        this.createParticleStarfield();
     }
   }
 

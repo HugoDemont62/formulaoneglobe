@@ -1,4 +1,4 @@
-// components/Globe/CircuitMarkers.js
+// components/Globe/CircuitMarkers.js - Complet avec pins ajustés
 import {
   SphereGeometry,
   BoxGeometry,
@@ -6,10 +6,12 @@ import {
   MeshStandardMaterial,
   Mesh,
   Group,
-  Vector3
+  Vector3,
+  Raycaster,
+  Vector2
 } from 'three';
 
-// Données des circuits F1 2025 avec coordonnées géographiques précises
+// Données des circuits F1 2025
 export const F1_CIRCUITS_2025 = [
   {
     name: "Bahrain International Circuit",
@@ -197,97 +199,139 @@ export const F1_CIRCUITS_2025 = [
   }
 ];
 
-/**
- * Classe pour gérer les marqueurs des circuits de F1 sur le globe
- * Convertit les coordonnées géographiques en positions 3D
- */
 export default class CircuitMarkers {
   constructor() {
     this.markers = [];
+    this.markerMeshes = [];
     this.hoveredMarker = null;
     this.selectedMarker = null;
+    this.raycaster = new Raycaster();
+    this.occlusionRaycaster = new Raycaster();
+    this.earthMesh = null;
     this.createMarkers();
   }
 
-  /**
-   * Convertit les coordonnées géographiques (lat, lng) en position 3D sur une sphère
-   * @param {number} lat - Latitude en degrés
-   * @param {number} lng - Longitude en degrés
-   * @param {number} radius - Rayon de la sphère (par défaut 2.05 pour être au-dessus de la terre)
-   * @returns {Vector3} Position 3D sur la sphère
-   */
-  geoToVector3(lat, lng, radius = 1.05) {
-    // Conversion degrés vers radians
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lng + 180) * (Math.PI / 180);
+  setEarthMesh(earthMesh) {
+    this.earthMesh = earthMesh;
+    console.log('🌍 Référence terre définie pour test d\'occlusion');
+  }
 
-    // Calcul des coordonnées cartésiennes
-    const x = -(radius * Math.sin(phi) * Math.cos(theta));
+  /**
+   * Formule de conversion géographique vers 3D
+   */
+  geoToVector3(lat, lng, radius = 1.04) {
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (-lng + 180) * (Math.PI / 180); // Remarque le signe moins devant lng
+
+    const x = radius * Math.sin(phi) * Math.cos(theta);
     const y = radius * Math.cos(phi);
     const z = radius * Math.sin(phi) * Math.sin(theta);
 
     return new Vector3(x, y, z);
   }
 
-  /**
-   * Crée un marqueur visuel pour un circuit
-   * @param {Object} circuit - Données du circuit
-   * @param {number} index - Index du circuit
-   * @returns {Object} Objet contenant le groupe du marqueur et ses données
-   */
   createSingleMarker(circuit, index) {
     const group = new Group();
-
-    // Position 3D du circuit sur la sphère
     const position = this.geoToVector3(circuit.lat, circuit.lng);
 
-    // Marqueur principal (forme diamant)
-    const markerGeometry = new BoxGeometry(0.05, 0.05, 0.05);
-    const markerMaterial = new MeshBasicMaterial({
-      color: 0xffffff,
+    // Pin principal - Plus petit et stylé
+    const pinGeometry = new BoxGeometry(0.01, 0.05, 0.01);  // Plus petit
+    const pinMaterial = new MeshStandardMaterial({
+      color: 0x444444,        // Gris foncé au lieu de blanc
+      emissive: 0x111111,
+      metalness: 0.7,         // Aspect métallique
+      roughness: 0.3,
       transparent: true,
       opacity: 0.9
     });
-    const markerMesh = new Mesh(markerGeometry, markerMaterial);
-    markerMesh.position.copy(position);
-    // Rotation pour créer un effet diamant
-    markerMesh.rotation.x = Math.PI / 4;
-    markerMesh.rotation.y = Math.PI / 4;
+    const pinMesh = new Mesh(pinGeometry, pinMaterial);
+    pinMesh.position.copy(position);
+    pinMesh.lookAt(position.clone().multiplyScalar(2));
 
-    // Point rouge central (plus visible)
-    const pointGeometry = new SphereGeometry(0.02, 12, 12);
+    // Point rouge principal - Plus petit et plus lumineux
+    const pointGeometry = new SphereGeometry(0.015, 12, 12);  // Plus petit
     const pointMaterial = new MeshStandardMaterial({
-      color: 0xff0000,
-      emissive: 0x440000 // Légère émission pour le faire briller
+      color: 0xff2020,        // Rouge plus vif
+      emissive: 0xaa0000,     // Plus d'émission
+      transparent: true,
+      opacity: 1.0
     });
     const pointMesh = new Mesh(pointGeometry, pointMaterial);
     pointMesh.position.copy(position);
 
-    // Ajout des éléments au groupe
-    group.add(markerMesh);
+    // Halo plus petit et plus subtil
+    const haloGeometry = new SphereGeometry(0.025, 8, 8);     // Plus petit
+    const haloMaterial = new MeshBasicMaterial({
+      color: 0xff6666,        // Rouge plus clair
+      transparent: true,
+      opacity: 0.2,           // Plus transparent
+      depthWrite: false
+    });
+    const haloMesh = new Mesh(haloGeometry, haloMaterial);
+    haloMesh.position.copy(position);
+
+    group.add(haloMesh);
+    group.add(pinMesh);
     group.add(pointMesh);
 
-    // Stockage des données pour l'interaction
+    // Debug pour premiers marqueurs
+    if (index < 5) {
+      console.log(`📍 ${circuit.name} (${circuit.lat}°, ${circuit.lng}°) → Position:`, position);
+    }
+
+    // Stockage pour raycasting
+    pinMesh.userData = { circuit, index, type: 'marker' };
+    pointMesh.userData = { circuit, index, type: 'marker' };
+
+    this.markerMeshes.push(pinMesh, pointMesh);
+
     group.userData = {
       circuit,
       index,
-      markerMesh,
+      pinMesh,
       pointMesh,
+      haloMesh,
       position: position.clone(),
+      worldPosition: position.clone(),
       isHovered: false,
-      isSelected: false
+      isSelected: false,
+      isVisible: true
     };
 
-    return {
-      group,
-      circuit,
-      position
-    };
+    return { group, circuit, position };
   }
 
-  /**
-   * Crée tous les marqueurs pour tous les circuits
-   */
+  isMarkerOccludedByEarth(markerWorldPosition, camera) {
+    if (!this.earthMesh) return false;
+
+    const direction = markerWorldPosition.clone().sub(camera.position).normalize();
+    const distance = camera.position.distanceTo(markerWorldPosition);
+
+    this.occlusionRaycaster.set(camera.position, direction);
+    this.occlusionRaycaster.far = distance - 0.01;
+
+    const intersects = this.occlusionRaycaster.intersectObject(this.earthMesh, false);
+    return intersects.length > 0;
+  }
+
+  updateMarkersVisibility(camera, globeGroup) {
+    if (!camera) return;
+
+    this.markers.forEach(marker => {
+      const worldPosition = marker.group.userData.position.clone();
+
+      if (globeGroup) {
+        worldPosition.applyMatrix4(globeGroup.matrixWorld);
+      }
+
+      marker.group.userData.worldPosition = worldPosition;
+      const isOccluded = this.isMarkerOccludedByEarth(worldPosition, camera);
+
+      marker.group.userData.isVisible = !isOccluded;
+      marker.group.visible = !isOccluded;
+    });
+  }
+
   createMarkers() {
     console.log(`🏁 Création de ${F1_CIRCUITS_2025.length} marqueurs de circuits F1...`);
 
@@ -296,88 +340,81 @@ export default class CircuitMarkers {
       this.markers.push(marker);
     });
 
-    console.log(`✅ ${this.markers.length} marqueurs créés avec succès`);
+    console.log(`✅ ${this.markers.length} marqueurs créés avec pins ajustés`);
   }
 
-  /**
-   * Retourne tous les groupes de marqueurs pour les ajouter à la scène
-   * @returns {Group[]} Tableau des groupes Three.js
-   */
   getMarkerGroups() {
     return this.markers.map(marker => marker.group);
   }
 
-  /**
-   * Met à jour l'animation des marqueurs
-   * @param {number} time - Temps pour l'animation
-   */
-  update(time) {
+  update(time, camera = null, globeGroup = null) {
+    if (camera) {
+      this.updateMarkersVisibility(camera, globeGroup);
+    }
+
     this.markers.forEach((marker, index) => {
-      const { markerMesh, pointMesh, isHovered, isSelected } = marker.group.userData;
+      if (!marker.group.userData.isVisible) return;
+
+      const { pinMesh, pointMesh, haloMesh, isHovered, isSelected } = marker.group.userData;
 
       if (!isHovered && !isSelected) {
-        // Animation de pulsation pour le point rouge
-        const pulseTime = time * 0.003 + index * 0.5;
-        const scale = 1 + Math.sin(pulseTime) * 0.2;
+        const pulseTime = time * 0.002 + index * 0.3;
+        const scale = 1 + Math.sin(pulseTime) * 0.15; // Animation plus subtile
         pointMesh.scale.setScalar(scale);
 
-        // Rotation du marqueur diamant
-        markerMesh.rotation.y += 0.015;
-        markerMesh.rotation.x += 0.01;
+        const haloScale = 1 + Math.sin(pulseTime * 1.2) * 0.08;
+        haloMesh.scale.setScalar(haloScale);
+
+        pinMesh.rotation.y += 0.005; // Rotation plus lente
       }
     });
   }
 
-  /**
-   * Trouve le marqueur le plus proche d'une position de souris
-   * @param {Vector2} mouse - Position de la souris normalisée (-1 à 1)
-   * @param {Camera} camera - Caméra pour la projection
-   * @returns {Group|null} Le groupe du marqueur trouvé ou null
-   */
   getMarkerFromMouse(mouse, camera) {
-    // Projection des marqueurs sur l'écran pour détection
-    for (let marker of this.markers) {
-      const screenPosition = marker.position.clone();
-      screenPosition.project(camera);
+    this.raycaster.setFromCamera(mouse, camera);
 
-      // Calcul de la distance entre la souris et le marqueur projeté
-      const distance = Math.sqrt(
-        Math.pow(mouse.x - screenPosition.x, 2) +
-        Math.pow(mouse.y - screenPosition.y, 2)
-      );
+    const visibleMeshes = this.markerMeshes.filter(mesh => {
+      const markerIndex = mesh.userData.index;
+      return this.markers[markerIndex].group.userData.isVisible;
+    });
 
-      // Seuil de détection
-      if (distance < 0.08) {
-        return marker.group;
+    const intersects = this.raycaster.intersectObjects(visibleMeshes);
+
+    if (intersects.length > 0) {
+      const intersectedMesh = intersects[0].object;
+      const markerData = intersectedMesh.userData;
+
+      if (markerData && markerData.type === 'marker') {
+        return this.markers[markerData.index].group;
       }
     }
+
     return null;
   }
 
-  /**
-   * Met en surbrillance un marqueur
-   * @param {Group} markerGroup - Groupe du marqueur à mettre en surbrillance
-   */
   highlightMarker(markerGroup) {
     if (this.hoveredMarker && this.hoveredMarker !== markerGroup) {
-      // Réinitialiser le marqueur précédent
       this.resetMarker(this.hoveredMarker);
     }
 
-    if (markerGroup) {
-      markerGroup.userData.isHovered = true;
-      markerGroup.userData.markerMesh.scale.setScalar(1.5);
-      markerGroup.userData.pointMesh.scale.setScalar(1.3);
-      markerGroup.userData.markerMesh.material.color.setHex(0xffff00); // Jaune en survol
+    if (markerGroup && markerGroup.userData.isVisible) {
+      const userData = markerGroup.userData;
+      userData.isHovered = true;
+
+      // Effet de survol plus subtil
+      userData.pinMesh.scale.setScalar(1.2);
+      userData.pointMesh.scale.setScalar(1.3);
+      userData.haloMesh.scale.setScalar(1.4);
+
+      // Couleurs de survol
+      userData.pinMesh.material.color.setHex(0xffff44); // Jaune
+      userData.pointMesh.material.emissive.setHex(0xff6600); // Orange
+      userData.haloMesh.material.opacity = 0.4;
     }
 
     this.hoveredMarker = markerGroup;
   }
 
-  /**
-   * Sélectionne un marqueur
-   * @param {Group} markerGroup - Groupe du marqueur à sélectionner
-   */
   selectMarker(markerGroup) {
     if (this.selectedMarker) {
       this.selectedMarker.userData.isSelected = false;
@@ -385,51 +422,68 @@ export default class CircuitMarkers {
     }
 
     if (markerGroup) {
-      markerGroup.userData.isSelected = true;
-      markerGroup.userData.markerMesh.scale.setScalar(2);
-      markerGroup.userData.pointMesh.scale.setScalar(1.5);
-      markerGroup.userData.markerMesh.material.color.setHex(0x00ff00); // Vert pour sélection
+      const userData = markerGroup.userData;
+      userData.isSelected = true;
+
+      // Effet de sélection plus visible
+      userData.pinMesh.scale.setScalar(1.5);
+      userData.pointMesh.scale.setScalar(1.6);
+      userData.haloMesh.scale.setScalar(1.8);
+
+      // Couleurs de sélection
+      userData.pinMesh.material.color.setHex(0x00ff44); // Vert vif
+      userData.pointMesh.material.color.setHex(0x00ff44);
+      userData.pointMesh.material.emissive.setHex(0x006600);
+      userData.haloMesh.material.color.setHex(0x44ff44);
+      userData.haloMesh.material.opacity = 0.6;
+
+      console.log(`✅ Marqueur sélectionné: ${userData.circuit.name}`);
     }
 
     this.selectedMarker = markerGroup;
   }
 
-  /**
-   * Remet un marqueur à son état par défaut
-   * @param {Group} markerGroup - Groupe du marqueur à réinitialiser
-   */
   resetMarker(markerGroup) {
     if (markerGroup && !markerGroup.userData.isSelected) {
-      markerGroup.userData.isHovered = false;
-      markerGroup.userData.markerMesh.scale.setScalar(1);
-      markerGroup.userData.pointMesh.scale.setScalar(1);
-      markerGroup.userData.markerMesh.material.color.setHex(0xffffff); // Blanc par défaut
+      const userData = markerGroup.userData;
+      userData.isHovered = false;
+
+      // Retour à l'état normal
+      userData.pinMesh.scale.setScalar(1);
+      userData.pointMesh.scale.setScalar(1);
+      userData.haloMesh.scale.setScalar(1);
+
+      // Couleurs par défaut
+      userData.pinMesh.material.color.setHex(0x444444); // Gris foncé
+      userData.pointMesh.material.color.setHex(0xff2020); // Rouge vif
+      userData.pointMesh.material.emissive.setHex(0xaa0000);
+      userData.haloMesh.material.color.setHex(0xff6666); // Rouge clair
+      userData.haloMesh.material.opacity = 0.2;
     }
   }
 
-  /**
-   * Retourne le circuit sélectionné
-   * @returns {Object|null} Données du circuit sélectionné
-   */
   getSelectedCircuit() {
     return this.selectedMarker ? this.selectedMarker.userData.circuit : null;
   }
 
-  /**
-   * Libère les ressources
-   */
   dispose() {
-    this.markers.forEach(marker => {
-      const { markerMesh, pointMesh } = marker.group.userData;
-      if (markerMesh) {
-        markerMesh.geometry.dispose();
-        markerMesh.material.dispose();
-      }
-      if (pointMesh) {
-        pointMesh.geometry.dispose();
-        pointMesh.material.dispose();
-      }
+    this.markerMeshes.forEach(mesh => {
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.material) mesh.material.dispose();
     });
+
+    this.markers.forEach(marker => {
+      const { pinMesh, pointMesh, haloMesh } = marker.group.userData;
+      if (pinMesh?.geometry) pinMesh.geometry.dispose();
+      if (pinMesh?.material) pinMesh.material.dispose();
+      if (pointMesh?.geometry) pointMesh.geometry.dispose();
+      if (pointMesh?.material) pointMesh.material.dispose();
+      if (haloMesh?.geometry) haloMesh.geometry.dispose();
+      if (haloMesh?.material) haloMesh.material.dispose();
+    });
+
     this.markers = [];
+    this.markerMeshes = [];
+    this.earthMesh = null;
   }
 }
