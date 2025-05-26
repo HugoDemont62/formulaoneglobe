@@ -229,7 +229,6 @@ export default class CircuitsSidebar {
       newCard.style.transform = 'translateY(-3px)';
       newCard.style.borderColor = '#ff4444';
       newCard.style.background = 'linear-gradient(135deg, rgba(255, 68, 68, 0.1) 0%, rgba(255, 68, 68, 0.05) 100%)';
-      newCard.style.boxShadow = '0 10px 30px rgba(255, 68, 68, 0.2)';
 
       // Scroll vers la carte si nécessaire
       newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -245,7 +244,6 @@ export default class CircuitsSidebar {
     card.style.transform = 'translateY(0)';
     card.style.borderColor = 'rgba(255, 255, 255, 0.08)';
     card.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)';
-    card.style.boxShadow = 'none';
   }
 
   /**

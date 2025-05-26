@@ -28,17 +28,6 @@ export default class Light {
     // Lumière directionnelle principale (simule le soleil)
     this.directionalLight = new DirectionalLight(0xffffff, 1.2);
     this.directionalLight.position.set(5, 3, 5);
-    this.directionalLight.castShadow = true;
-
-    // Configuration des ombres
-    this.directionalLight.shadow.mapSize.width = 2048;
-    this.directionalLight.shadow.mapSize.height = 2048;
-    this.directionalLight.shadow.camera.near = 0.5;
-    this.directionalLight.shadow.camera.far = 50;
-    this.directionalLight.shadow.camera.left = -10;
-    this.directionalLight.shadow.camera.right = 10;
-    this.directionalLight.shadow.camera.top = 10;
-    this.directionalLight.shadow.camera.bottom = -10;
 
     this.scene.add(this.directionalLight);
   }

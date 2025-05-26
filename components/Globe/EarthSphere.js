@@ -4,7 +4,10 @@ import {
   MeshPhongMaterial,
   Mesh,
   TextureLoader,
-  Color
+  DoubleSide,
+  RepeatWrapping,
+  LinearFilter,
+  LinearMipmapLinearFilter
 } from 'three';
 
 /**
@@ -23,20 +26,21 @@ export default class EarthSphere {
    */
   createEarth() {
     // Géométrie de la sphère - plus de détails pour un rendu lisse
-    const geometry = new SphereGeometry(2, 128, 128);
+    // Augmentation du nombre de segments pour réduire les artefacts en zoom
+    const geometry = new SphereGeometry(2, 192, 192);
 
-    // Matériau initial (sera remplacé par la texture)
+    // Matériau initial optimisé pour éviter les triangles noirs
     const material = new MeshPhongMaterial({
-      flatShading: false,
-      side: 2,
-      transparent: false, // Ajoute cette ligne
-      opacity: 1,         // Et celle-ci
+      specular: 0x333333,      // Réflexion spéculaire légère pour l'océan
+      shininess: 25,           // Moins brillant pour un aspect plus naturel
+      flatShading: false,      // Shader lisse pour éviter les facettes
+      side: DoubleSide,        // Rendu des deux côtés de la géométrie
+      transparent: false,
+      opacity: 1,
     });
 
     // Création du mesh
     this.mesh = new Mesh(geometry, material);
-    this.mesh.receiveShadow = true;
-    this.mesh.castShadow = true;
 
     // Rotation initiale pour orienter la terre
     this.mesh.rotation.y = Math.PI;
@@ -51,7 +55,7 @@ export default class EarthSphere {
   loadEarthTexture() {
     // Essaie plusieurs chemins possibles pour la texture terre
     const possiblePaths = [
-      './assets/earth_color.webp'
+      './assets/earth_color.webp',
     ];
 
     this.tryLoadTexture(possiblePaths, 0);
@@ -72,10 +76,21 @@ export default class EarthSphere {
     this.textureLoader.load(
       currentPath,
       (texture) => {
-        // Succès du chargement
-        texture.wrapS = texture.wrapT = 1000; // RepeatWrapping
+        // Configuration optimisée de la texture pour éviter les triangles noirs
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+
+        // Amélioration du filtrage pour éviter les artefacts en zoom
+        texture.minFilter = LinearMipmapLinearFilter; // Meilleur filtrage pour zoom arrière
+        texture.magFilter = LinearFilter;             // Meilleur filtrage pour zoom avant
+
+        // Génération des mipmaps pour différents niveaux de détail
+        texture.generateMipmaps = true;
+        texture.anisotropy = 16;  // Améliore la qualité des textures en angle
+
+        // Application de la texture
         this.mesh.material.map = texture;
         this.mesh.material.needsUpdate = true;
+
         console.log(`✅ Texture terre chargée: ${currentPath}`);
       },
       (progress) => {
@@ -86,7 +101,7 @@ export default class EarthSphere {
       },
       (error) => {
         // Erreur - essayer le suivant
-        console.warn(`⚠️ Échec chargement: ${currentPath}`);
+        console.warn(`⚠️ Échec chargement: ${currentPath}`, error);
         this.tryLoadTexture(paths, index + 1);
       }
     );
@@ -102,7 +117,13 @@ export default class EarthSphere {
     this.textureLoader.load(
       texturePath,
       (texture) => {
-        texture.wrapS = texture.wrapT = 1000;
+        // Configuration optimisée identique
+        texture.wrapS = texture.wrapT = RepeatWrapping;
+        texture.minFilter = LinearMipmapLinearFilter;
+        texture.magFilter = LinearFilter;
+        texture.generateMipmaps = true;
+        texture.anisotropy = 16;
+
         this.mesh.material.map = texture;
         this.mesh.material.needsUpdate = true;
         console.log('✅ Texture personnalisée chargée');

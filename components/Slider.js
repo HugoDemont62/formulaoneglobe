@@ -16,7 +16,6 @@ export default class Slider {
       { x: 3, y: 2, z: 4, name: "Vue Europe" },
       { x: -4, y: 1, z: 3, name: "Vue Amériques" },
       { x: 2, y: 0, z: -4, name: "Vue Asie" },
-      { x: 0, y: 4, z: 3, name: "Vue Polaire" }
     ];
 
     this.createControls();

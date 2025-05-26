@@ -50,16 +50,24 @@ async function init() {
 /**
  * Configuration du moteur WebGL
  */
+// Section à mettre à jour dans index.js - setupWebGL()
+
 async function setupWebGL() {
     webgl.canvas = canvas;
 
-    const pixelRatio = Math.min(window.devicePixelRatio, 2); // Limite pour les performances
+    // Limite le pixel ratio pour éviter les problèmes de performance sur écrans haute densité
+    const pixelRatio = Math.min(window.devicePixelRatio, 2);
 
+    // Configuration améliorée du renderer
     renderer = new WebGLRenderer({
         canvas,
-        antialias: true,
+        antialias: true,       // Antialiasing pour éviter les arêtes dentelées
         alpha: true,
-        powerPreference: "high-performance"
+        powerPreference: "high-performance",
+        precision: "highp",    // Haute précision pour les calculs
+        logarithmicDepthBuffer: true,  // Améliore le rendu à différentes échelles
+        stencil: false,        // Désactivé si non utilisé pour économiser de la mémoire
+        depth: true
     });
 
     renderer.setPixelRatio(pixelRatio);
