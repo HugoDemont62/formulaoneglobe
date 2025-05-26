@@ -1,74 +1,300 @@
-:root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    font-weight: 500;
+/* style.css */
 
-    color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
-
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-body {
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #000;
+    overflow: hidden;
+    cursor: default;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+canvas {
+    display: block;
     width: 100%;
     height: 100%;
-    background-color: black;
-    overflow: hidden;
-}
-
-.debug-gui {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 3;
-    display: block;
-}
-
-.webgl {
-    position: fixed;
-    inset: 0;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    overflow: hidden;
+    outline: none;
     user-select: none;
 }
 
-.slider {
-    position: absolute;
-    bottom: 4rem;
+/* Interface utilisateur */
+.tp-dfwv {
+    position: fixed !important;
+    top: 20px !important;
+    left: 20px !important;
+    z-index: 1000 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+}
+
+/* Sidebar des circuits */
+#circuits-sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+#circuits-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+#circuits-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#circuits-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+#circuits-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Cards des circuits avec animations */
+.circuit-card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(5px);
+}
+
+.circuit-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.circuit-card img {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.circuit-card:hover img {
+    transform: scale(1.05);
+    opacity: 1;
+}
+
+/* Détails du circuit */
+#circuit-details {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Messages et modales */
+#welcome-message,
+#help-modal > div {
+    animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Boutons stylisés */
+button {
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* Loading spinner (optionnel) */
+.loading-spinner {
+    position: fixed;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 1rem;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid #ff0000;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 4000;
 }
 
-.slide {
-    all: unset;
-    width: 3rem;
-    height: 3rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(255, 255, 255, 0.2);
-    transition:
-        background-color 0.3s ease-out,
-        color 0.3s ease-out;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-.slide:hover {
-    cursor: pointer;
-    background-color: rgba(255, 255, 255, 0.4);
+/* Responsive design */
+@media (max-width: 1024px) {
+    #circuits-sidebar {
+        width: 300px !important;
+        padding: 15px 10px !important;
+    }
+
+    .circuit-card {
+        margin-bottom: 15px !important;
+    }
+
+    .circuit-card > div {
+        height: 150px !important;
+    }
+
+    #circuit-details {
+        left: 10px !important;
+        right: 10px !important;
+        max-width: none !important;
+        bottom: 10px !important;
+    }
+
+    #welcome-message,
+    #help-modal > div {
+        margin: 0 20px;
+        max-width: calc(100vw - 40px);
+    }
 }
 
-.slide.active {
-    color: black;
-    background-color: rgba(255, 255, 255, 1);
+@media (max-width: 768px) {
+    #circuits-sidebar {
+        width: 100vw !important;
+        height: 40vh !important;
+        top: auto !important;
+        bottom: 0 !important;
+        border-left: none !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 15px 15px 0 0 !important;
+    }
+
+    .circuit-card {
+        display: flex;
+        margin-bottom: 10px !important;
+    }
+
+    .circuit-card > div {
+        width: 120px;
+        height: 80px !important;
+        flex-shrink: 0;
+    }
+
+    .circuit-card h3 {
+        font-size: 14px !important;
+    }
+
+    .circuit-card p {
+        font-size: 12px !important;
+    }
+
+    .tp-dfwv {
+        top: 10px !important;
+        left: 10px !important;
+        scale: 0.9;
+    }
+}
+
+/* Animations de marqueurs */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+/* Style du curseur sur le canvas */
+canvas {
+    cursor: grab;
+}
+
+canvas:active {
+    cursor: grabbing;
+}
+
+/* Effet de focus pour l'accessibilité */
+button:focus,
+.circuit-card:focus {
+    outline: 2px solid #ff0000;
+    outline-offset: 2px;
+}
+
+/* Amélioration des contrastes */
+h2, h3 {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+p {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Performance et GPU acceleration */
+.circuit-card,
+#circuit-details,
+#welcome-message,
+#help-modal > div {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Style pour les tooltips (si ajoutés plus tard) */
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 5000;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+/* Thème sombre par défaut */
+:root {
+    --primary-color: #ff0000;
+    --secondary-color: #ffffff;
+    --background-color: #000000;
+    --surface-color: rgba(255, 255, 255, 0.05);
+    --text-color: #ffffff;
+    --text-secondary: #cccccc;
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mode haute performance (réduit les effets visuels) */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

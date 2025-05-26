@@ -1,61 +1,100 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link
-            rel="icon"
-            type="image/svg+xml"
-            href="/vite.svg"
-        />
-        <link
-            href="style.css"
-            rel="stylesheet"
-        />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0"
-        />
-        <title>ECV - Creative Coding</title>
-    </head>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Globe F1 2025 - Circuits de Formule 1</title>
 
-    <body>
-        <div id="app">
-            <div class="slider">
-                <button
-                    class="slide"
-                    data-index="0"
-                >
-                    1
-                </button>
-                <button
-                    class="slide"
-                    data-index="1"
-                >
-                    2
-                </button>
-                <button
-                    class="slide"
-                    data-index="2"
-                >
-                    3
-                </button>
-                <button
-                    class="slide"
-                    data-index="3"
-                >
-                    4
-                </button>
-                <button
-                    class="slide"
-                    data-index="4"
-                >
-                    5
-                </button>
-            </div>
+    <!-- Meta tags pour le SEO et partage -->
+    <meta name="description" content="Explorez les 23 circuits de Formule 1 de la saison 2025 sur un globe terrestre interactif en 3D">
+    <meta name="keywords" content="F1, Formule 1, circuits, globe, 3D, interactive, 2025, Grand Prix">
+    <meta name="author" content="Votre Nom">
+
+    <!-- Open Graph pour réseaux sociaux -->
+    <meta property="og:title" content="Globe F1 2025 - Circuits Interactifs">
+    <meta property="og:description" content="Découvrez tous les circuits de F1 2025 sur un globe 3D interactif">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="./assets/preview.jpg">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Globe F1 2025">
+    <meta name="twitter:description" content="Globe 3D interactif des circuits de Formule 1 2025">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./assets/favicon.ico">
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+
+    <!-- Preload des ressources critiques -->
+    <link rel="preload" href="./assets/earth-texture.jpg" as="image">
+    <link rel="preload" href="./assets/stars.jpg" as="image">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./style.css">
+
+    <!-- Performance et accessibilité -->
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="dark">
+</head>
+<body>
+<div id="app">
+    <!-- Le canvas Three.js sera injecté ici -->
+
+    <!-- Fallback pour navigateurs sans WebGL -->
+    <noscript>
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                        background: #1a1a1a; color: white; padding: 30px; border-radius: 15px;
+                        text-align: center; font-family: Arial, sans-serif; border: 2px solid #ff0000;">
+            <h2 style="color: #ff4444; margin-top: 0;">🏎️ Globe F1 2025</h2>
+            <p>JavaScript est requis pour cette expérience interactive.</p>
+            <p>Veuillez activer JavaScript dans votre navigateur.</p>
         </div>
-        <script
-            type="module"
-            src="/index.js"
-        ></script>
-    </body>
+    </noscript>
+
+    <!-- Loading indicator -->
+    <div id="loading" class="loading-spinner" style="display: block;"></div>
+</div>
+
+
+<!-- Scripts -->
+<script type="module" src="./index.js"></script>
+
+<!-- Script pour cacher le loading -->
+<script>
+window.addEventListener('load', () => {
+  const loading = document.getElementById('loading');
+  if (loading) {
+    setTimeout(() => {
+      loading.style.display = 'none';
+    }, 1000);
+  }
+});
+
+// Gestion des erreurs WebGL
+window.addEventListener('error', (e) => {
+  if (e.message.includes('WebGL')) {
+    document.body.innerHTML = `
+                    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                background: #1a1a1a; color: white; padding: 30px; border-radius: 15px;
+                                text-align: center; font-family: Arial, sans-serif; border: 2px solid #ff0000;">
+                        <h2 style="color: #ff4444; margin-top: 0;">⚠️ WebGL non supporté</h2>
+                        <p>Votre navigateur ne supporte pas WebGL.</p>
+                        <p>Essayez avec Chrome, Firefox ou Safari récent.</p>
+                    </div>
+                `;
+  }
+});
+</script>
+
+<!-- Analytics (optionnel) -->
+<!--
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'GA_MEASUREMENT_ID');
+</script>
+-->
+</body>
 </html>

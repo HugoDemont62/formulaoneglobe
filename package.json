@@ -1,15 +1,32 @@
 {
-  "name": "ecv",
-  "private": true,
-  "version": "0.0.0",
+  "name": "globe-f1-2025",
+  "description": "Globe 3D interactif des circuits de Formule 1 2025",
+  "version": "1.0.0",
   "type": "module",
+  "private": false,
+  "author": "Votre Nom",
+  "license": "MIT",
+  "keywords": ["f1", "formula1", "globe", "3d", "threejs", "circuits", "racing"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/votre-username/globe-f1-2025.git"
+  },
+  "bugs": {
+    "url": "https://github.com/votre-username/globe-f1-2025/issues"
+  },
+  "homepage": "https://votre-username.github.io/globe-f1-2025/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist",
+    "lint": "prettier --check .",
+    "format": "prettier --write .",
+    "clean": "rm -rf dist node_modules/.vite"
   },
   "devDependencies": {
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "gh-pages": "^6.1.1"
   },
   "dependencies": {
     "@types/three": "^0.175.0",
@@ -19,5 +36,9 @@
     "three": "^0.175.0",
     "tweakpane": "^4.0.5",
     "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }
