@@ -1,4 +1,4 @@
-// index.js - Point d'entrée corrigé pour Globe F1 2025
+// index.js - Version mobile optimisée pour Globe F1 2025
 import gsap from 'gsap';
 import { Scene, Vector2, WebGLRenderer } from 'three';
 import Camera from './components/Camera.js';
@@ -9,9 +9,19 @@ import Slider from './components/Slider.js';
 
 let canvas, webgl, renderer;
 
+// Détection mobile/tactile
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+const isSmallScreen = window.innerWidth <= 768;
+
 // Objet global WebGL
 webgl = {};
 window.webgl = webgl;
+
+// Variables pour gestion tactile optimisée
+let lastTouchTime = 0;
+let touchStartPos = { x: 0, y: 0 };
+let isDragging = false;
 
 // Création du canvas
 canvas = document.createElement('canvas');
@@ -19,99 +29,355 @@ const app = document.querySelector('#app');
 app.appendChild(canvas);
 
 /**
- * Initialisation principale de l'application
+ * Initialisation principale optimisée mobile
  */
 async function init() {
-    console.log('🚀 Initialisation de Globe F1 2025...');
+    console.log('🚀 Initialisation Globe F1 2025 (Mobile optimisé)...');
+    console.log(`📱 Détection: Mobile=${isMobile}, Touch=${isTouchDevice}, Small=${isSmallScreen}`);
 
     try {
-        // Configuration du WebGL
+        // Configuration WebGL optimisée
         await setupWebGL();
 
-        // Préchargement des ressources
+        // Préchargement adaptatif
         await preload();
 
-        // Démarrage de l'application
+        // Configuration mobile spécifique
+        setupMobileOptimizations();
+
+        // Démarrage application
         await start();
 
-        // Démarrage de la boucle de rendu
+        // Démarrage boucle de rendu
         gsap.ticker.add(update);
 
-        // Affichage du message de bienvenue
+        // Message de bienvenue adapté
         showWelcomeMessage();
 
-        console.log('✅ Globe F1 2025 initialisé avec succès !');
+        console.log('✅ Globe F1 2025 initialisé avec optimisations mobile !');
 
-        // AJOUTER CES LIGNES :
+        // Exposition globale
         window.webgl = webgl;
         window.globe = webgl.globe;
         window.markers = webgl.globe?.circuitMarkers;
 
-        console.log('🧪 Objets debug exposés : window.webgl, window.globe, window.markers');
+        console.log('🧪 Objets debug exposés');
 
     } catch (error) {
-        console.error('❌ Erreur lors de l\'initialisation:', error);
+        console.error('❌ Erreur initialisation:', error);
         showErrorMessage(error);
     }
 }
 
 /**
- * Configuration du moteur WebGL
+ * Configuration WebGL optimisée pour mobile
  */
-// Section à mettre à jour dans index.js - setupWebGL()
-
 async function setupWebGL() {
     webgl.canvas = canvas;
 
-    // Limite le pixel ratio pour éviter les problèmes de performance sur écrans haute densité
-    const pixelRatio = Math.min(window.devicePixelRatio, 2);
+    // Pixel ratio adaptatif (limite sur mobile pour les performances)
+    const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
 
-    // Configuration améliorée du renderer
-    renderer = new WebGLRenderer({
+    // Configuration renderer optimisée mobile
+    const rendererConfig = {
         canvas,
-        antialias: true,       // Antialiasing pour éviter les arêtes dentelées
+        antialias: !isMobile, // Désactivé sur mobile pour les performances
         alpha: true,
-        powerPreference: "high-performance",
-        precision: "highp",    // Haute précision pour les calculs
-        logarithmicDepthBuffer: true,  // Améliore le rendu à différentes échelles
-        stencil: false,        // Désactivé si non utilisé pour économiser de la mémoire
+        powerPreference: isMobile ? "default" : "high-performance",
+        precision: isMobile ? "mediump" : "highp",
+        logarithmicDepthBuffer: !isMobile, // Désactivé sur mobile
+        stencil: false,
         depth: true
-    });
+    };
 
+    renderer = new WebGLRenderer(rendererConfig);
     renderer.setPixelRatio(pixelRatio);
     renderer.setClearColor(0x000000, 1);
 
-    // Activation des ombres pour un rendu plus réaliste
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = renderer.PCFSoftShadowMap;
+    // Ombres conditionnelles (désactivées sur mobile)
+    if (!isMobile) {
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = renderer.PCFSoftShadowMap;
+    }
 
-    // Configuration de l'interface de débogage
-    webgl.gui = new Pane({
-        title: 'Globe F1 Controls',
-        expanded: false
-    });
+    // Interface de débogage conditionnelle
+    if (!isSmallScreen) {
+        webgl.gui = new Pane({
+            title: 'Globe F1 Controls',
+            expanded: false
+        });
+    }
 
-    // Configuration du viewport
+    // Configuration viewport
     webgl.viewport = new Vector2();
     webgl.viewportRatio = window.innerWidth / window.innerHeight;
 
     resize();
 
-    console.log('🎮 WebGL configuré');
+    console.log(`🎮 WebGL configuré (Mobile: ${isMobile}, PixelRatio: ${pixelRatio})`);
 }
 
 /**
- * Préchargement des ressources
+ * Optimisations spécifiques mobile
+ */
+function setupMobileOptimizations() {
+    if (!isTouchDevice) return;
+
+    console.log('📱 Configuration optimisations tactiles...');
+
+    // Empêche le zoom par pincement
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('gesturechange', (e) => e.preventDefault());
+    document.addEventListener('gestureend', (e) => e.preventDefault());
+
+    // Empêche le menu contextuel sur long press
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Optimise les événements tactiles
+    setupOptimizedTouchEvents();
+
+    // Désactive certaines animations sur mobile
+    if (isMobile) {
+        document.documentElement.style.setProperty('--animation-duration', '0.2s');
+    }
+
+    // Améliore les performances sur mobile
+    setupMobilePerformanceOptimizations();
+}
+
+/**
+ * Événements tactiles optimisés
+ */
+function setupOptimizedTouchEvents() {
+    let touchCount = 0;
+    let initialDistance = 0;
+    let lastTap = 0;
+
+    // Touch start optimisé
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        touchCount = e.touches.length;
+        lastTouchTime = Date.now();
+
+        if (touchCount === 1) {
+            const touch = e.touches[0];
+            touchStartPos = {
+                x: touch.clientX,
+                y: touch.clientY
+            };
+            isDragging = false;
+
+            // Détection double tap
+            const now = Date.now();
+            if (now - lastTap < 300) {
+                handleDoubleTap(touch);
+            }
+            lastTap = now;
+
+        } else if (touchCount === 2) {
+            // Calcul distance initiale pour zoom
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            initialDistance = Math.sqrt(
+              Math.pow(touch2.clientX - touch1.clientX, 2) +
+              Math.pow(touch2.clientY - touch1.clientY, 2)
+            );
+        }
+    }, { passive: false });
+
+    // Touch move optimisé
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+
+        if (touchCount === 1) {
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartPos.x;
+            const deltaY = touch.clientY - touchStartPos.y;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            // Commence le drag seulement après un certain mouvement
+            if (distance > 10 && !isDragging) {
+                isDragging = true;
+                if (webgl.globe) {
+                    webgl.globe.setAutoRotate(false);
+                }
+            }
+
+            if (isDragging && webgl.globe) {
+                // Rotation du globe optimisée pour mobile
+                const sensitivity = isMobile ? 0.003 : 0.005;
+                webgl.globe.group.rotation.y += deltaX * sensitivity;
+                webgl.globe.group.rotation.x += deltaY * sensitivity;
+                webgl.globe.group.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, webgl.globe.group.rotation.x));
+
+                touchStartPos = {
+                    x: touch.clientX,
+                    y: touch.clientY
+                };
+            }
+
+        } else if (touchCount === 2) {
+            // Gestion zoom avec deux doigts (optionnel)
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            const currentDistance = Math.sqrt(
+              Math.pow(touch2.clientX - touch1.clientX, 2) +
+              Math.pow(touch2.clientY - touch1.clientY, 2)
+            );
+
+            if (initialDistance > 0 && webgl.camera) {
+                const scale = currentDistance / initialDistance;
+                const camera = webgl.camera.main;
+                const newZ = Math.max(1.5, Math.min(5, camera.position.z / scale));
+                camera.position.z = newZ;
+            }
+        }
+    }, { passive: false });
+
+    // Touch end optimisé
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        touchCount = e.touches.length;
+
+        if (touchCount === 0) {
+            const touchDuration = Date.now() - lastTouchTime;
+
+            // Si c'est un tap court sans drag
+            if (!isDragging && touchDuration < 200) {
+                handleSingleTap(e.changedTouches[0]);
+            }
+
+            // Reset après drag
+            if (isDragging) {
+                isDragging = false;
+                setTimeout(() => {
+                    if (webgl.globe) {
+                        webgl.globe.setAutoRotate(true);
+                    }
+                }, 1000); // Délai plus court sur mobile
+            }
+        }
+
+        initialDistance = 0;
+    }, { passive: false });
+}
+
+/**
+ * Gestion tap simple
+ */
+function handleSingleTap(touch) {
+    if (!webgl.globe || !webgl.globe.circuitMarkers) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const mouse = new Vector2(
+      ((touch.clientX - rect.left) / rect.width) * 2 - 1,
+      -((touch.clientY - rect.top) / rect.height) * 2 + 1
+    );
+
+    const intersectedMarker = webgl.globe.circuitMarkers.getMarkerFromMouse(
+      mouse,
+      webgl.camera.active
+    );
+
+    if (intersectedMarker) {
+        webgl.globe.selectCircuit(intersectedMarker);
+        console.log('🎯 Circuit sélectionné via tap mobile');
+    } else {
+        // Désélection
+        if (webgl.globe.selectedCircuit) {
+            webgl.globe.circuitMarkers.selectMarker(null);
+            webgl.globe.selectedCircuit = null;
+            webgl.globe.hideCircuitInfo();
+        }
+    }
+}
+
+/**
+ * Gestion double tap
+ */
+function handleDoubleTap(touch) {
+    console.log('👆 Double tap détecté');
+
+    // Reset position du globe
+    if (webgl.globe) {
+        webgl.globe.resetPosition();
+    }
+
+    // Retour vue globale
+    if (webgl.slider) {
+        webgl.slider.setSlide(0);
+    }
+}
+
+/**
+ * Optimisations performances mobile
+ */
+function setupMobilePerformanceOptimizations() {
+    if (!isMobile) return;
+
+    // Réduit la fréquence de mise à jour sur mobile
+    gsap.ticker.fps(isMobile ? 30 : 60);
+
+    // Désactive certaines fonctionnalités gourmandes
+    window.mobileOptimizations = {
+        reducedAnimations: true,
+        simplifiedShaders: true,
+        lowerParticleCount: true
+    };
+
+    // Gestion mémoire mobile
+    setupMobileMemoryManagement();
+
+    console.log('⚡ Optimisations performances mobile activées');
+}
+
+/**
+ * Gestion mémoire mobile
+ */
+function setupMobileMemoryManagement() {
+    // Nettoyage automatique de la mémoire
+    let memoryCheckInterval;
+
+    const checkMemory = () => {
+        if (performance.memory) {
+            const usedMemory = performance.memory.usedJSHeapSize / 1024 / 1024; // MB
+            const totalMemory = performance.memory.totalJSHeapSize / 1024 / 1024; // MB
+
+            console.log(`📊 Mémoire: ${usedMemory.toFixed(1)}MB / ${totalMemory.toFixed(1)}MB`);
+
+            // Si mémoire > 100MB, force le garbage collection
+            if (usedMemory > 100 && window.gc) {
+                window.gc();
+                console.log('🗑️ Garbage collection forcé');
+            }
+        }
+    };
+
+    if (isMobile) {
+        memoryCheckInterval = setInterval(checkMemory, 30000); // Toutes les 30s
+    }
+
+    // Nettoyage avant fermeture
+    window.addEventListener('beforeunload', () => {
+        if (memoryCheckInterval) {
+            clearInterval(memoryCheckInterval);
+        }
+    });
+}
+
+/**
+ * Préchargement adaptatif
  */
 async function preload() {
-    console.log('📦 Préchargement des ressources...');
+    console.log('📦 Préchargement adaptatif...');
 
-    // Simulation d'un préchargement (ici on n'a pas de ressources externes)
+    // Simulation de préchargement avec délai réduit sur mobile
     return new Promise(resolve => {
+        const delay = isMobile ? 300 : 500;
         setTimeout(() => {
             console.log('✅ Ressources prêtes');
             resolve();
-        }, 500);
+        }, delay);
     });
 }
 
@@ -119,45 +385,55 @@ async function preload() {
  * Démarrage de l'application
  */
 async function start() {
-    console.log('🌟 Démarrage de l\'application...');
+    console.log('🌟 Démarrage application...');
 
     // Création de la scène
     webgl.scene = new Scene();
 
-    // Création des composants dans l'ordre
+    // Création des composants avec priorité mobile
     webgl.light = new Light();
     webgl.camera = new Camera();
     webgl.globe = new Globe();
-    webgl.slider = new Slider();
+
+    // Slider seulement sur desktop ou grands écrans
+    if (!isSmallScreen) {
+        webgl.slider = new Slider();
+    }
 
     console.log('🎬 Application démarrée');
 }
 
 /**
- * Boucle de mise à jour principale
+ * Boucle de mise à jour optimisée
  */
 function update(time, deltaTime, frame) {
-    // Mise à jour de la caméra
+    // Throttling sur mobile - met à jour moins souvent
+    if (isMobile && frame % 2 !== 0) {
+        render();
+        return;
+    }
+
+    // Mise à jour caméra
     if (webgl.camera) {
         webgl.camera.update();
     }
 
-    // Mise à jour de l'éclairage
-    if (webgl.light) {
+    // Mise à jour éclairage (réduite sur mobile)
+    if (webgl.light && (!isMobile || frame % 5 === 0)) {
         webgl.light.update();
     }
 
-    // Mise à jour du globe
+    // Mise à jour globe
     if (webgl.globe) {
         webgl.globe.update();
     }
 
-    // Rendu de la scène
+    // Rendu
     render();
 }
 
 /**
- * Rendu de la scène
+ * Rendu optimisé
  */
 function render() {
     if (renderer && webgl.scene && webgl.camera) {
@@ -166,7 +442,7 @@ function render() {
 }
 
 /**
- * Gestion du redimensionnement
+ * Redimensionnement responsive
  */
 function resize() {
     const width = window.innerWidth;
@@ -176,19 +452,23 @@ function resize() {
     webgl.viewport.set(width, height);
     webgl.pixelRatio = window.devicePixelRatio;
 
-    // Mise à jour de la caméra
+    // Mise à jour caméra
     if (webgl.camera) {
         webgl.camera.resize();
     }
 
-    // Mise à jour du renderer
+    // Mise à jour renderer avec pixel ratio adaptatif
     if (renderer) {
+        const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2);
+        renderer.setPixelRatio(pixelRatio);
         renderer.setSize(width, height);
     }
+
+    console.log(`📐 Resize: ${width}x${height} (ratio: ${webgl.viewportRatio.toFixed(2)})`);
 }
 
 /**
- * Affichage du message de bienvenue
+ * Message de bienvenue adapté mobile
  */
 function showWelcomeMessage() {
     const welcomeDiv = document.createElement('div');
@@ -200,62 +480,61 @@ function showWelcomeMessage() {
         transform: translate(-50%, -50%);
         background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,30,50,0.95));
         color: white;
-        padding: 30px;
+        padding: ${isMobile ? '20px' : '30px'};
         border-radius: 15px;
         border: 2px solid #ff0000;
         text-align: center;
         z-index: 3000;
-        font-family: 'Arial', sans-serif;
-        max-width: 400px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        max-width: ${isMobile ? 'calc(100vw - 20px)' : '400px'};
         box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         backdrop-filter: blur(10px);
         animation: fadeIn 0.5s ease-out;
     `;
 
+    // Contenu adapté mobile/desktop
+    const controlsText = isTouchDevice ?
+      `<p style="margin: 5px 0; font-size: ${isMobile ? '13px' : '14px'};">👆 <strong>Tap :</strong> Sélectionner un circuit</p>
+         <p style="margin: 5px 0; font-size: ${isMobile ? '13px' : '14px'};">👆👆 <strong>Double tap :</strong> Réinitialiser</p>
+         <p style="margin: 5px 0; font-size: ${isMobile ? '13px' : '14px'};">✋ <strong>Drag :</strong> Faire tourner le globe</p>
+         <p style="margin: 5px 0; font-size: ${isMobile ? '13px' : '14px'};">🏎️ <strong>Menu :</strong> Liste des circuits</p>` :
+      `<p style="margin: 5px 0; font-size: 14px;">🖱️ <strong>Drag :</strong> Faire tourner le globe</p>
+         <p style="margin: 5px 0; font-size: 14px;">🖱️ <strong>Clic :</strong> Sélectionner un circuit</p>
+         <p style="margin: 5px 0; font-size: 14px;">🎮 <strong>Panneau droit :</strong> Vues prédéfinies</p>`;
+
     welcomeDiv.innerHTML = `
-        <h2 style="color: #ff4444; margin-top: 0; font-size: 24px;">🏎️ Globe F1 2025</h2>
-        <p style="font-size: 16px; line-height: 1.5; margin: 20px 0;">
+        <h2 style="color: #ff4444; margin-top: 0; font-size: ${isMobile ? '20px' : '24px'};">🏎️ Globe F1 2025</h2>
+        <p style="font-size: ${isMobile ? '14px' : '16px'}; line-height: 1.5; margin: 15px 0;">
             Explorez tous les circuits de Formule 1 2025 sur un globe interactif !
         </p>
         
-        <div style="text-align: left; margin: 20px 0; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-            <h3 style="color: #ff4444; margin-top: 0; font-size: 14px;">🎮 Contrôles :</h3>
-            <p style="margin: 5px 0; font-size: 14px;">🖱️ <strong>Drag :</strong> Faire tourner le globe</p>
-            <p style="margin: 5px 0; font-size: 14px;">🖱️ <strong>Clic :</strong> Sélectionner un circuit</p>
-            <p style="margin: 5px 0; font-size: 14px;">🎯 <strong>Points rouges :</strong> Circuits F1</p>
-            <p style="margin: 5px 0; font-size: 14px;">🎮 <strong>Panneau droit :</strong> Vues prédéfinies</p>
+        <div style="text-align: left; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+            <h3 style="color: #ff4444; margin-top: 0; font-size: ${isMobile ? '13px' : '14px'};">${isTouchDevice ? '📱' : '🎮'} Contrôles :</h3>
+            ${controlsText}
+            <p style="margin: 5px 0; font-size: ${isMobile ? '13px' : '14px'};">🎯 <strong>Points rouges :</strong> Circuits F1</p>
         </div>
         
         <button onclick="this.parentElement.remove()" 
-                style="background: #ff0000; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 15px; transition: background 0.3s ease;">
-            🚀 Commencer l'exploration !
+                style="background: #ff0000; color: white; border: none; padding: ${isMobile ? '10px 16px' : '12px 20px'}; border-radius: 8px; cursor: pointer; font-size: ${isMobile ? '14px' : '16px'}; font-weight: 600; margin-top: 15px; transition: background 0.3s ease; min-height: 44px;">
+            🚀 ${isMobile ? 'C\'est parti !' : 'Commencer l\'exploration !'}
         </button>
     `;
 
-    // Style pour l'animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
-    `;
-    document.head.appendChild(style);
-
     document.body.appendChild(welcomeDiv);
 
-    // Auto-fermeture après 8 secondes
+    // Auto-fermeture adaptée
+    const autoCloseDelay = isMobile ? 6000 : 8000;
     setTimeout(() => {
         if (welcomeDiv.parentElement) {
             welcomeDiv.style.animation = 'fadeOut 0.5s ease-out';
             welcomeDiv.style.animationFillMode = 'forwards';
             setTimeout(() => welcomeDiv.remove(), 500);
         }
-    }, 8000);
+    }, autoCloseDelay);
 }
 
 /**
- * Affichage d'un message d'erreur
+ * Message d'erreur
  */
 function showErrorMessage(error) {
     const errorDiv = document.createElement('div');
@@ -266,27 +545,27 @@ function showErrorMessage(error) {
         transform: translate(-50%, -50%);
         background: rgba(139, 0, 0, 0.95);
         color: white;
-        padding: 30px;
+        padding: ${isMobile ? '20px' : '30px'};
         border-radius: 15px;
         border: 2px solid #ff6b6b;
         text-align: center;
         z-index: 4000;
-        font-family: 'Arial', sans-serif;
-        max-width: 400px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        max-width: ${isMobile ? 'calc(100vw - 20px)' : '400px'};
     `;
 
     errorDiv.innerHTML = `
         <h2 style="color: #ff6b6b; margin-top: 0;">⚠️ Erreur</h2>
-        <p>Une erreur s'est produite lors du chargement du globe :</p>
-        <code style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; display: block; margin: 15px 0;">
+        <p>Une erreur s'est produite lors du chargement :</p>
+        <code style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; display: block; margin: 15px 0; font-size: ${isMobile ? '12px' : '14px'};">
             ${error.message}
         </code>
-        <p style="font-size: 14px; margin-top: 20px;">
-            Veuillez vérifier que votre navigateur supporte WebGL et recharger la page.
+        <p style="font-size: ${isMobile ? '13px' : '14px'}; margin-top: 20px;">
+            ${isMobile ? 'Vérifiez votre connexion et' : 'Vérifiez que votre navigateur supporte WebGL et'} rechargez la page.
         </p>
         <button onclick="window.location.reload()" 
-                style="background: #ff6b6b; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 15px;">
-            🔄 Recharger la page
+                style="background: #ff6b6b; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 15px; min-height: 44px;">
+            🔄 Recharger
         </button>
     `;
 
@@ -294,9 +573,11 @@ function showErrorMessage(error) {
 }
 
 /**
- * Gestion des raccourcis clavier
+ * Raccourcis clavier (desktop uniquement)
  */
 function setupKeyboardControls() {
+    if (isTouchDevice) return; // Pas de clavier sur mobile
+
     window.addEventListener('keydown', (e) => {
         switch(e.key.toLowerCase()) {
             case 'f':
@@ -316,7 +597,7 @@ function setupKeyboardControls() {
                 break;
 
             case 'r':
-                // Reset du globe
+                // Reset
                 if (webgl.globe) {
                     webgl.globe.resetPosition();
                 }
@@ -326,12 +607,11 @@ function setupKeyboardControls() {
                 break;
 
             case 'escape':
-                // Fermer les modales
+                // Fermer modales
                 closeAllModals();
                 break;
 
             case 'arrowright':
-                // Vue suivante
                 if (webgl.slider) {
                     webgl.slider.nextSlide();
                 }
@@ -339,7 +619,6 @@ function setupKeyboardControls() {
                 break;
 
             case 'arrowleft':
-                // Vue précédente
                 if (webgl.slider) {
                     webgl.slider.previousSlide();
                 }
@@ -359,10 +638,9 @@ function setupKeyboardControls() {
 }
 
 /**
- * Affichage de l'aide
+ * Aide adaptée mobile/desktop
  */
 function showHelpModal() {
-    // Supprimer l'ancienne modale si elle existe
     let helpModal = document.getElementById('help-modal');
     if (helpModal) {
         helpModal.style.display = 'flex';
@@ -383,62 +661,72 @@ function showHelpModal() {
         justify-content: center;
         align-items: center;
         backdrop-filter: blur(5px);
+        padding: ${isMobile ? '10px' : '0'};
     `;
 
     const content = document.createElement('div');
     content.style.cssText = `
         background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
         color: white;
-        padding: 30px;
+        padding: ${isMobile ? '20px' : '30px'};
         border-radius: 15px;
         border: 2px solid #ff0000;
-        max-width: 500px;
-        font-family: 'Arial', sans-serif;
+        max-width: ${isMobile ? '100%' : '500px'};
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        max-height: 80vh;
+        max-height: ${isMobile ? 'calc(100vh - 20px)' : '80vh'};
         overflow-y: auto;
     `;
 
-    content.innerHTML = `
-        <h2 style="color: #ff4444; margin-top: 0; text-align: center;">🏎️ Guide d'utilisation</h2>
+    const controlsContent = isTouchDevice ? `
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+            <h3 style="color: #ff4444; margin: 0 0 8px 0; font-size: 14px;">📱 Contrôles Tactiles</h3>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>Tap :</strong> Sélectionner un circuit</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>Double tap :</strong> Réinitialiser la vue</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>Drag :</strong> Faire tourner le globe</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>Pincement :</strong> Zoomer (2 doigts)</p>
+        </div>
         
-        <div style="display: grid; gap: 15px; margin: 25px 0;">
-            <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-                <h3 style="color: #ff4444; margin: 0 0 8px 0; font-size: 14px;">🖱️ Contrôles Souris</h3>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>Drag :</strong> Faire tourner le globe</p>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>Hover :</strong> Survoler les marqueurs</p>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>Clic :</strong> Sélectionner un circuit</p>
-            </div>
-            
-            <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-                <h3 style="color: #ff4444; margin: 0 0 8px 0; font-size: 14px;">⌨️ Raccourcis Clavier</h3>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>F :</strong> Plein écran</p>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>H :</strong> Cette aide</p>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>R :</strong> Réinitialiser la vue</p>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>Espace :</strong> Pause/reprise rotation</p>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>← → :</strong> Changer de vue</p>
-                <p style="margin: 3px 0; font-size: 13px;"><strong>Échap :</strong> Fermer les fenêtres</p>
-            </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+            <h3 style="color: #ff4444; margin: 0 0 8px 0; font-size: 14px;">📋 Menu Mobile</h3>
+            <p style="margin: 3px 0; font-size: 13px;">• <strong>Bouton "Circuits"</strong> en haut</p>
+            <p style="margin: 3px 0; font-size: 13px;">• <strong>Liste déroulante</strong> des 23 circuits</p>
+            <p style="margin: 3px 0; font-size: 13px;">• <strong>Tap sur un circuit</strong> pour le voir</p>
+        </div>` : `
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+            <h3 style="color: #ff4444; margin: 0 0 8px 0; font-size: 14px;">🖱️ Contrôles Souris</h3>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>Drag :</strong> Faire tourner le globe</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>Hover :</strong> Survoler les marqueurs</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>Clic :</strong> Sélectionner un circuit</p>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+            <h3 style="color: #ff4444; margin: 0 0 8px 0; font-size: 14px;">⌨️ Raccourcis Clavier</h3>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>F :</strong> Plein écran</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>H :</strong> Cette aide</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>R :</strong> Réinitialiser</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>Espace :</strong> Pause rotation</p>
+            <p style="margin: 3px 0; font-size: 13px;"><strong>← → :</strong> Changer de vue</p>
+        </div>`;
+
+    content.innerHTML = `
+        <h2 style="color: #ff4444; margin-top: 0; text-align: center; font-size: ${isMobile ? '18px' : '20px'};">🏎️ Guide d'utilisation</h2>
+        
+        <div style="display: grid; gap: 15px; margin: 20px 0;">
+            ${controlsContent}
             
             <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
                 <h3 style="color: #ff4444; margin: 0 0 8px 0; font-size: 14px;">🏁 Circuits F1 2025</h3>
                 <p style="margin: 3px 0; font-size: 13px;">• <strong>23 circuits</strong> de la saison 2025</p>
                 <p style="margin: 3px 0; font-size: 13px;">• <strong>Points rouges</strong> sur le globe</p>
-                <p style="margin: 3px 0; font-size: 13px;">• <strong>Infos détaillées</strong> en bas à gauche</p>
-                <p style="margin: 3px 0; font-size: 13px;">• <strong>Vues prédéfinies</strong> en haut à droite</p>
-            </div>
-
-            <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-                <h3 style="color: #ff4444; margin: 0 0 8px 0; font-size: 14px;">🎮 Interface</h3>
-                <p style="margin: 3px 0; font-size: 13px;">• <strong>Panneau droit :</strong> Contrôles de vue</p>
-                <p style="margin: 3px 0; font-size: 13px;">• <strong>Panneau gauche :</strong> Paramètres avancés</p>
-                <p style="margin: 3px 0; font-size: 13px;">• <strong>Rotation automatique :</strong> Activable/désactivable</p>
+                <p style="margin: 3px 0; font-size: 13px;">• <strong>Infos détaillées</strong> par circuit</p>
+                <p style="margin: 3px 0; font-size: 13px;">• <strong>Navigation</strong> par continent</p>
             </div>
         </div>
         
         <div style="text-align: center; margin-top: 20px;">
             <button onclick="document.getElementById('help-modal').style.display='none'" 
-                    style="background: #ff0000; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                    style="background: #ff0000; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; min-height: 44px;">
                 Compris ! 🚀
             </button>
         </div>
@@ -456,7 +744,7 @@ function showHelpModal() {
 }
 
 /**
- * Fermer toutes les modales ouvertes
+ * Fermer toutes les modales
  */
 function closeAllModals() {
     const modals = ['help-modal', 'circuit-info', 'welcome-message'];
@@ -469,33 +757,54 @@ function closeAllModals() {
 }
 
 /**
- * Gestion responsive
+ * Configuration responsive avancée
  */
 function setupResponsive() {
-    // Gestion du redimensionnement
-    window.addEventListener('resize', resize);
-
-    // Gestion de l'orientation sur mobile
-    window.addEventListener('orientationchange', () => {
-        setTimeout(resize, 100);
+    // Gestion redimensionnement
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(resize, 100);
     });
 
-    // Détection du support WebGL
+    // Gestion orientation mobile
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            resize();
+            // Force un refresh des éléments UI sur mobile
+            if (isMobile && webgl.globe) {
+                webgl.globe.forceOcclusionUpdate();
+            }
+        }, 100);
+    });
+
+    // Détection support WebGL
     if (!renderer || !renderer.capabilities.isWebGL2) {
-        console.warn('⚠️ WebGL2 non supporté, utilisation de WebGL1');
+        console.warn('⚠️ WebGL2 non supporté, utilisation WebGL1');
     }
+
+    // Gestion visibilité page (optimisation mobile)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // Page masquée : ralentir les animations
+            gsap.ticker.fps(10);
+        } else {
+            // Page visible : reprendre la vitesse normale
+            gsap.ticker.fps(isMobile ? 30 : 60);
+        }
+    });
 }
 
 /**
- * Nettoyage lors de la fermeture
+ * Nettoyage optimisé
  */
 function cleanup() {
-    console.log('🧹 Nettoyage de l\'application...');
+    console.log('🧹 Nettoyage application...');
 
-    // Arrêt de la boucle de rendu
+    // Arrêt boucle de rendu
     gsap.ticker.remove(update);
 
-    // Nettoyage des composants
+    // Nettoyage composants
     if (webgl.globe) {
         webgl.globe.destroy();
     }
@@ -504,25 +813,27 @@ function cleanup() {
         webgl.slider.destroy();
     }
 
-    if (webgl.light) {
-        webgl.light.destroy?.();
+    if (webgl.light && webgl.light.destroy) {
+        webgl.light.destroy();
     }
 
-    if (webgl.camera) {
-        webgl.camera.destroy?.();
+    if (webgl.camera && webgl.camera.destroy) {
+        webgl.camera.destroy();
     }
 
-    // Nettoyage du renderer
+    // Nettoyage renderer
     if (renderer) {
         renderer.dispose();
     }
 
-    // Suppression des éléments DOM
+    // Suppression éléments DOM
     const elementsToRemove = [
         'welcome-message',
         'help-modal',
         'circuit-info',
-        'view-controls'
+        'view-controls',
+        'f1-circuits-sidebar',
+        'f1-mobile-menu'
     ];
 
     elementsToRemove.forEach(id => {
@@ -535,17 +846,17 @@ function cleanup() {
 
 // === INITIALISATION ===
 
-// Démarrage de l'application
+// Démarrage application
 window.addEventListener('DOMContentLoaded', () => {
     init();
     setupKeyboardControls();
     setupResponsive();
 });
 
-// Nettoyage à la fermeture
+// Nettoyage fermeture
 window.addEventListener('beforeunload', cleanup);
 
-// Gestion des erreurs globales
+// Gestion erreurs globales
 window.addEventListener('error', (e) => {
     console.error('❌ Erreur globale:', e.error);
 
@@ -558,3 +869,18 @@ window.addEventListener('error', (e) => {
 export function getWebGL() {
     return webgl;
 }
+
+// Ajout styles pour animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        to { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    }
+`;
+document.head.appendChild(style);

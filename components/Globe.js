@@ -1,11 +1,11 @@
-// components/Globe.js - Avec effet atmosphère intégré
 import { Group, Vector2 } from 'three';
 import { getWebGL } from '../index.js';
 
 import EarthSphere from './Globe/EarthSphere.js';
 import CircuitMarkers from './Globe/CircuitMarkers.js';
 import StarfieldBackground from './Globe/StarfieldBackground.js';
-import AtmosphereShader from './Globe/AtmosphereShader.js'; // NOUVEAU
+import AtmosphereShader from './Globe/AtmosphereShader.js';
+import CircuitsSidebar from './Globe/CircuitsSidebar.js';
 
 export default class Globe {
   constructor() {
@@ -17,7 +17,8 @@ export default class Globe {
     this.earthSphere = null;
     this.circuitMarkers = null;
     this.starfieldBackground = null;
-    this.atmosphere = null; // NOUVEAU
+    this.atmosphere = null;
+    this.sidebar = null; // Référence vers la sidebar pour synchronisation
 
     this.selectedCircuit = null;
     this.hoveredMarker = null;
@@ -30,24 +31,56 @@ export default class Globe {
     this.init();
   }
 
+  /**
+   * Définit la référence vers la sidebar pour synchronisation
+   */
+  setSidebar(sidebar) {
+    this.sidebar = sidebar;
+    console.log('🔗 Sidebar synchronisée avec le globe');
+  }
+
   async init() {
     console.log('🌍 Initialisation du Globe F1 2025...');
 
     try {
       await this.createStarfield();
       await this.createEarth();
-      await this.createAtmosphere();        // NOUVEAU
+      await this.createAtmosphere();
       await this.createCircuitMarkers();
+      await this.createCircuitsSidebar();
+
+      this.setSidebar(this.sidebar);
 
       this.attachMarkersToEarth();
-      this.setupAtmosphereControls();      // NOUVEAU
+      this.setupAtmosphereControls();
       this.setupInteractions();
       this.scene.add(this.group);
 
-      console.log('✅ Globe F1 2025 initialisé avec atmosphère !');
+      console.log('✅ Globe F1 2025 initialisé avec synchronisation sidebar !');
     } catch (error) {
       console.error('❌ Erreur lors de l\'initialisation du globe:', error);
     }
+  }
+
+  createSidebarLinkLine() {
+    // Crée ou récupère l'élément ligne
+    let line = document.getElementById('sidebar-link-line');
+    if (!line) {
+      line = document.createElement('div');
+      line.id = 'sidebar-link-line';
+      line.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      z-index: 2001;
+      width: 2px;
+      background: linear-gradient(180deg, #ff4444 60%, #fff 100%);
+      border-radius: 2px;
+      transition: opacity 0.2s;
+      opacity: 0;
+    `;
+      document.body.appendChild(line);
+    }
+    return line;
   }
 
   async createStarfield() {
@@ -59,6 +92,52 @@ export default class Globe {
       this.scene.add(starfieldMesh);
       console.log('✅ Champ d\'étoiles ajouté');
     }
+  }
+  updateSidebarLinkLine(circuitIndex) {
+    const line = this.createSidebarLinkLine();
+    if (circuitIndex < 0 || !this.circuitMarkers?.markers[circuitIndex]) {
+      line.style.opacity = 0;
+      return;
+    }
+
+    // 1. Position du marqueur sur le globe (3D → 2D)
+    const marker = this.circuitMarkers.markers[circuitIndex];
+    const markerPos = marker.group.getWorldPosition(new THREE.Vector3());
+    const camera = this.webgl.camera.active;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    // Projection 3D → 2D
+    markerPos.project(camera);
+    const markerScreen = {
+      x: (markerPos.x * 0.5 + 0.5) * width,
+      y: (-markerPos.y * 0.5 + 0.5) * height
+    };
+
+    // 2. Position de l'élément sidebar sélectionné
+    const sidebar = document.getElementById('f1-circuits-sidebar');
+    if (!sidebar) return;
+    const items = sidebar.querySelectorAll('div');
+    const item = items[circuitIndex + 1]; // +1 à cause du titre
+    if (!item) return;
+    const itemRect = item.getBoundingClientRect();
+    const sidebarPoint = {
+      x: itemRect.left,
+      y: itemRect.top + itemRect.height / 2
+    };
+
+    // 3. Calcul de la ligne
+    const dx = markerScreen.x - sidebarPoint.x;
+    const dy = markerScreen.y - sidebarPoint.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    line.style.left = `${sidebarPoint.x}px`;
+    line.style.top = `${sidebarPoint.y}px`;
+    line.style.width = `${length}px`;
+    line.style.height = `2px`;
+    line.style.transform = `rotate(${angle}deg)`;
+    line.style.opacity = 1;
   }
 
   async createEarth() {
@@ -75,9 +154,6 @@ export default class Globe {
     }
   }
 
-  /**
-   * NOUVEAU : Crée l'effet d'atmosphère
-   */
   async createAtmosphere() {
     console.log('🌌 Création de l\'atmosphère...');
 
@@ -85,12 +161,8 @@ export default class Globe {
     const atmosphereMesh = this.atmosphere.getMesh();
 
     if (atmosphereMesh) {
-      // Ajouter l'atmosphère au groupe principal
       this.group.add(atmosphereMesh);
-
-      // Appliquer le preset "realistic" par défaut
       this.atmosphere.applyPreset('realistic');
-
       console.log('✅ Atmosphère ajoutée avec succès');
     } else {
       console.warn('⚠️ atmosphereMesh est null');
@@ -101,6 +173,25 @@ export default class Globe {
     console.log('🏁 Création des marqueurs de circuits...');
     this.circuitMarkers = new CircuitMarkers();
     console.log(`✅ Marqueurs créés, en attente d'attachement à la terre`);
+  }
+
+  async createCircuitsSidebar() {
+    console.log('📋 Création de la sidebar des circuits...');
+    if (!this.sidebar) {
+      this.sidebar = new CircuitsSidebar({
+        onSelect: (index) => {
+          this.selectCircuitFromSidebar(index);
+        },
+        onHover: (index) => {
+          if (this.circuitMarkers) {
+            this.circuitMarkers.highlightMarkerByIndex(index);
+          }
+        }
+      });
+      console.log('✅ Sidebar des circuits créée');
+    } else {
+      console.warn('⚠️ Sidebar déjà initialisée, réutilisation de l\'instance existante');
+    }
   }
 
   attachMarkersToEarth() {
@@ -120,47 +211,27 @@ export default class Globe {
     console.log('🔗 Marqueurs attachés et synchronisés avec la terre !');
   }
 
-  /**
-   * NOUVEAU : Configure les contrôles pour le halo simple
-   */
   setupAtmosphereControls() {
     if (!this.atmosphere) return;
 
-    // Exposer les contrôles halo sur window
     window.halo = {
-      // Presets avec sync jour/nuit
-      realistic: () => this.atmosphere.applyPreset('realistic'),   // Réaliste
-      soft: () => this.atmosphere.applyPreset('soft'),             // Doux
-      dramatic: () => this.atmosphere.applyPreset('dramatic'),     // Dramatique
-      subtle: () => this.atmosphere.applyPreset('subtle'),         // Subtil
-      custom: () => this.atmosphere.applyPreset('custom'),         // Ton style
+      realistic: () => this.atmosphere.applyPreset('realistic'),
+      soft: () => this.atmosphere.applyPreset('soft'),
+      dramatic: () => this.atmosphere.applyPreset('dramatic'),
+      subtle: () => this.atmosphere.applyPreset('subtle'),
+      custom: () => this.atmosphere.applyPreset('custom'),
 
-      // Contrôles
       setIntensity: (intensity) => this.atmosphere.setIntensity(intensity),
       setSmoothness: (smoothness) => this.atmosphere.setSmoothness(smoothness),
       hide: () => this.atmosphere.setVisible(false),
       show: () => this.atmosphere.setVisible(true)
     };
 
-    console.log(`
-🌌 CONTRÔLES HALO JOUR/NUIT disponibles :
-
-halo.realistic()      // Halo réaliste jour/nuit
-halo.soft()           // Halo doux
-halo.dramatic()       // Halo dramatique  
-halo.subtle()         // Halo très subtil
-halo.custom()         // Ton style actuel
-
-halo.setIntensity(0.6)    // Ajuster intensité
-halo.setSmoothness(2.0)   // Ajuster douceur
-halo.hide() / halo.show()
-
-✨ Le halo suit automatiquement le cycle jour/nuit de la terre !
-    `);
+    console.log(`🌌 CONTRÔLES HALO disponibles`);
   }
 
   setupInteractions() {
-    console.log('🖱️ Configuration des interactions...');
+    console.log('🖱️ Configuration des interactions avec synchronisation...');
     const canvas = this.webgl.canvas;
 
     canvas.addEventListener('mousedown', (event) => this.onMouseDown(event));
@@ -169,7 +240,7 @@ halo.hide() / halo.show()
     canvas.addEventListener('click', (event) => this.onMouseClick(event));
 
     canvas.style.cursor = 'grab';
-    console.log('✅ Interactions configurées');
+    console.log('✅ Interactions configurées avec synchronisation sidebar');
   }
 
   onMouseDown(event) {
@@ -227,12 +298,21 @@ halo.hide() / halo.show()
           this.circuitMarkers.selectMarker(null);
           this.selectedCircuit = null;
           this.hideCircuitInfo();
+
+          // Synchronisation avec sidebar
+          if (this.sidebar && this.sidebar.onMarkerSelect) {
+            this.sidebar.onMarkerSelect(-1);
+          }
+
           console.log('🔄 Sélection annulée');
         }
       }
     }
   }
 
+  /**
+   * Gestion du hover avec synchronisation sidebar
+   */
   handleMarkerHover(event) {
     if (!this.circuitMarkers) return;
 
@@ -242,12 +322,38 @@ halo.hide() / halo.show()
       this.webgl.camera.active
     );
 
+    // Highlight du marker
     this.circuitMarkers.highlightMarker(intersectedMarker);
 
+    // Synchronisation avec la sidebar
     if (intersectedMarker) {
+      const markerIndex = intersectedMarker.userData.index;
+
+      // Vérifier si c'est un nouveau hover
+      if (this.hoveredMarker !== intersectedMarker) {
+        this.hoveredMarker = intersectedMarker;
+
+        // Synchroniser avec la sidebar
+        if (this.sidebar && this.sidebar.onMarkerHover) {
+          this.sidebar.onMarkerHover(markerIndex);
+        }
+      }
+
       this.webgl.canvas.style.cursor = 'pointer';
-    } else if (!this.isDragging) {
-      this.webgl.canvas.style.cursor = 'grab';
+    } else {
+      // Plus de hover
+      if (this.hoveredMarker) {
+        this.hoveredMarker = null;
+
+        // Synchroniser avec la sidebar
+        if (this.sidebar && this.sidebar.onMarkerHover) {
+          this.sidebar.onMarkerHover(-1);
+        }
+      }
+
+      if (!this.isDragging) {
+        this.webgl.canvas.style.cursor = 'grab';
+      }
     }
   }
 
@@ -259,16 +365,110 @@ halo.hide() / halo.show()
     );
   }
 
+  /**
+   * Sélection de circuit avec synchronisation sidebar
+   */
   selectCircuit(markerGroup) {
     if (!markerGroup || !this.circuitMarkers) return;
 
     const circuit = markerGroup.userData.circuit;
+    const markerIndex = markerGroup.userData.index;
     this.selectedCircuit = circuit;
 
     this.circuitMarkers.selectMarker(markerGroup);
     this.displayCircuitInfo(circuit);
 
-    console.log(`🏁 Circuit sélectionné: ${circuit.name}`);
+    // Synchronisation avec la sidebar
+    if (this.sidebar && this.sidebar.onMarkerSelect) {
+      this.sidebar.onMarkerSelect(markerIndex);
+    }
+
+    console.log(`🏁 Circuit sélectionné: ${circuit.name} (sync sidebar)`);
+  }
+
+  /**
+   * Méthode publique pour sélection depuis la sidebar
+   */
+  selectCircuitFromSidebar(circuitIndex) {
+    if (this.circuitMarkers && this.circuitMarkers.markers[circuitIndex]) {
+      const marker = this.circuitMarkers.markers[circuitIndex];
+      this.selectCircuit(marker.group);
+
+      // Centrer la vue sur le circuit sélectionné
+      this.focusOnCircuit(circuitIndex);
+      this.updateSidebarLinkLine(circuitIndex);
+    }
+  }
+
+  /**
+   * Focus sur un circuit spécifique
+   */
+  focusOnCircuit(circuitIndex) {
+    if (!this.circuitMarkers || !this.circuitMarkers.markers[circuitIndex]) return;
+
+    const marker = this.circuitMarkers.markers[circuitIndex];
+    const circuit = marker.circuit;
+
+    // Arrêter la rotation
+    this.setAutoRotate(false);
+
+    // Calculer la position optimale de la caméra pour ce circuit
+    const lat = circuit.lat * Math.PI / 180;
+    const lng = circuit.lng * Math.PI / 180;
+
+    // Position de caméra optimale pour voir le circuit
+    const distance = 2.5;
+    const cameraX = distance * Math.cos(lat) * Math.cos(lng);
+    const cameraY = distance * Math.sin(lat);
+    const cameraZ = distance * Math.cos(lat) * Math.sin(lng);
+
+    // Animation vers la position
+    if (this.webgl.camera && this.webgl.camera.main) {
+      this.animateCameraToPosition(this.webgl.camera.main, {
+        x: cameraX,
+        y: cameraY,
+        z: cameraZ
+      });
+    }
+
+    console.log(`🎯 Focus sur ${circuit.name}`);
+  }
+
+  /**
+   * Animation de caméra
+   */
+  animateCameraToPosition(camera, targetPosition) {
+    const startPosition = {
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z
+    };
+
+    const duration = 2000;
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const eased = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      camera.position.x = startPosition.x + (targetPosition.x - startPosition.x) * eased;
+      camera.position.y = startPosition.y + (targetPosition.y - startPosition.y) * eased;
+      camera.position.z = startPosition.z + (targetPosition.z - startPosition.z) * eased;
+
+      camera.lookAt(0, 0, 0);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        console.log(`✅ Animation caméra terminée`);
+      }
+    };
+
+    animate();
   }
 
   displayCircuitInfo(circuit) {
@@ -287,7 +487,7 @@ halo.hide() / halo.show()
       border: 2px solid #ff0000;
       max-width: 380px;
       z-index: 2000;
-      font-family: 'Arial', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       backdrop-filter: blur(15px);
       animation: slideInFromLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -329,13 +529,14 @@ halo.hide() / halo.show()
                 style="background: #ff0000; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease; flex: 1;">
           ✕ Fermer
         </button>
-        <button onclick="console.log('🔍 Plus d\'infos sur ${circuit.name}')" 
+        <button onclick="window.open('https://www.formula1.com/en/racing/2025.html', '_blank')" 
                 style="background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease; flex: 1;">
-          ℹ️ Détails
+          ℹ️ F1.com
         </button>
       </div>
     `;
 
+    // Styles pour animations
     if (!document.getElementById('circuit-info-styles')) {
       const style = document.createElement('style');
       style.id = 'circuit-info-styles';
@@ -378,9 +579,6 @@ halo.hide() / halo.show()
     }
   }
 
-  /**
-   * MISE À JOUR avec synchronisation atmosphère
-   */
   update() {
     const time = Date.now();
 
@@ -396,15 +594,13 @@ halo.hide() / halo.show()
       this.earthSphere.update(time);
     }
 
-    // NOUVEAU : Mise à jour de l'atmosphère avec sync soleil
+    // Mise à jour de l'atmosphère
     if (this.atmosphere && this.earthSphere) {
-      // Récupérer la direction du soleil de la terre pour synchronisation
       const earthMesh = this.earthSphere.getMesh();
       if (earthMesh && earthMesh.material.uniforms && earthMesh.material.uniforms.sunDirection) {
         const sunDirection = earthMesh.material.uniforms.sunDirection.value;
         this.atmosphere.setSunDirection(sunDirection);
       }
-
       this.atmosphere.update(time);
     }
 
@@ -419,6 +615,8 @@ halo.hide() / halo.show()
       this.starfieldBackground.update(time);
     }
   }
+
+  // Méthodes publiques pour contrôle externe
 
   getSelectedCircuit() {
     return this.selectedCircuit;
@@ -442,6 +640,11 @@ halo.hide() / halo.show()
       this.circuitMarkers.selectMarker(null);
       this.selectedCircuit = null;
       this.hideCircuitInfo();
+
+      // Synchronisation avec sidebar
+      if (this.sidebar && this.sidebar.onMarkerSelect) {
+        this.sidebar.onMarkerSelect(-1);
+      }
     }
 
     console.log('🏠 Position du globe réinitialisée');
@@ -498,7 +701,6 @@ halo.hide() / halo.show()
       this.starfieldBackground.dispose();
     }
 
-    // NOUVEAU : Nettoyage atmosphère
     if (this.atmosphere) {
       this.atmosphere.dispose();
     }
@@ -509,7 +711,8 @@ halo.hide() / halo.show()
 
     this.selectedCircuit = null;
     this.hoveredMarker = null;
+    this.sidebar = null;
 
-    console.log('✅ Globe nettoyé complètement (avec atmosphère)');
+    console.log('✅ Globe nettoyé complètement (avec synchronisation sidebar)');
   }
 }

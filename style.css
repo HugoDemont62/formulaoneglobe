@@ -1,4 +1,4 @@
-/* style.css - Styles mis à jour pour Globe F1 2025 */
+/* style.css - Version mobile optimisée pour drag & drop simplifié */
 
 * {
     margin: 0;
@@ -12,6 +12,9 @@ html, body {
     background: #000;
     overflow: hidden;
     cursor: default;
+    /* Empêche les zooms accidentels sur mobile */
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
 }
 
 #app {
@@ -20,60 +23,114 @@ html, body {
     position: relative;
 }
 
+/* === CANVAS OPTIMISÉ MOBILE === */
+
 canvas {
     display: block;
     width: 100%;
     height: 100%;
     outline: none;
     user-select: none;
-    touch-action: none;
+    /* Actions tactiles simplifiées pour drag & drop fluide */
+    touch-action: pan-x pan-y;
+    /* Empêche la sélection de texte lors du drag */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* Améliore les performances sur mobile */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
-/* === SIDEBAR F1 CIRCUITS === */
+/* États du curseur optimisés */
+canvas {
+    cursor: grab;
+}
+
+canvas:active,
+canvas.grabbing {
+    cursor: grabbing;
+}
+
+canvas.pointer {
+    cursor: pointer;
+}
+
+/* === MENU MOBILE === */
+
+#f1-mobile-menu {
+    /* Assure que le menu reste au-dessus */
+    z-index: 1500 !important;
+}
+
+#mobile-header {
+    /* Force l'affichage en haut */
+    position: relative;
+    z-index: 1501;
+    /* Améliore la zone tactile */
+    min-height: 60px;
+}
+
+#menu-toggle {
+    /* Zone tactile optimisée (44px minimum Apple) */
+    min-width: 44px !important;
+    min-height: 44px !important;
+    /* Empêche les doubles taps */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#menu-toggle:active {
+    transform: scale(0.95) !important;
+    background: rgba(255, 68, 68, 0.4) !important;
+}
+
+.mobile-circuit-item {
+    /* Zone tactile minimum pour mobile */
+    min-height: 60px !important;
+    /* Empêche la sélection de texte */
+    user-select: none;
+    -webkit-user-select: none;
+    /* Améliore la réactivité tactile */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-circuit-item:active {
+    transform: scale(0.98) !important;
+    background: linear-gradient(135deg, rgba(255,68,68,0.2) 0%, rgba(255,68,68,0.1) 100%) !important;
+}
+
+#mobile-dropdown {
+    /* Scroll fluide sur mobile */
+    -webkit-overflow-scrolling: touch;
+    /* Momentum scrolling iOS */
+    overflow-scrolling: touch;
+}
+
+/* === SIDEBAR DESKTOP === */
 
 #f1-circuits-sidebar {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+    /* Scroll fluide */
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Animation pour les cartes de circuits */
-.f1-circuit-card {
-    transform: translateZ(0); /* Activation GPU */
+.desktop-circuit-card {
+    transform: translateZ(0);
+    /* Améliore les performances d'animation */
+    will-change: transform;
 }
 
-.f1-circuit-card:hover {
+.desktop-circuit-card:hover {
     transform: translateY(-2px) translateZ(0);
 }
 
-.f1-circuit-card.selected {
+.desktop-circuit-card.selected {
     transform: translateY(-3px) translateZ(0);
-}
-
-/* === DÉTAILS DU CIRCUIT === */
-
-#circuit-details {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-}
-
-#circuit-details button:hover {
-    background: #cc0000 !important;
-    transform: scale(1.02);
-}
-
-#circuit-details button:active {
-    transform: scale(0.98);
-}
-
-/* Animation pour les détails */
-@keyframes slideInFromLeft {
-    from {
-        transform: translateX(-100px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
 }
 
 /* === TWEAKPANE (PANNEAU GAUCHE) === */
@@ -89,13 +146,27 @@ canvas {
     border-radius: 12px !important;
     font-size: 12px !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    /* Améliore la performance */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
-/* === CONTRÔLES DE VUE (SI UTILISÉS) === */
+/* === CONTRÔLES DE VUE === */
 
 #view-controls {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    /* Améliore les performances */
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+#view-controls button {
+    /* Zone tactile minimum */
+    min-height: 44px;
+    /* Empêche les doubles taps */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #view-controls button:hover {
@@ -104,7 +175,36 @@ canvas {
 }
 
 #view-controls button:active {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.98);
+}
+
+/* === DÉTAILS DU CIRCUIT === */
+
+#circuit-info {
+    /* Améliore la lisibilité sur mobile */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Performance */
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+#circuit-info button {
+    /* Zone tactile minimum */
+    min-height: 44px;
+    min-width: 44px;
+    /* Réactivité tactile */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#circuit-info button:hover {
+    background: #cc0000 !important;
+    transform: scale(1.02);
+}
+
+#circuit-info button:active {
+    transform: scale(0.98);
 }
 
 /* === MODALES ET MESSAGES === */
@@ -113,6 +213,9 @@ canvas {
 #help-modal > div {
     animation: modalFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    /* Performance */
+    will-change: transform, opacity;
+    transform: translateZ(0);
 }
 
 @keyframes modalFadeIn {
@@ -137,7 +240,26 @@ canvas {
     }
 }
 
-/* Styles pour les boutons dans les modales */
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Boutons dans les modales */
+#welcome-message button,
+#help-modal button {
+    min-height: 44px;
+    min-width: 100px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
 #welcome-message button:hover,
 #help-modal button:hover {
     background: #cc0000 !important;
@@ -150,7 +272,7 @@ canvas {
     transform: scale(0.98);
 }
 
-/* === LOADING ET ERREURS === */
+/* === LOADING === */
 
 .loading-spinner {
     position: fixed;
@@ -175,9 +297,9 @@ canvas {
     }
 }
 
-/* === RESPONSIVE DESIGN === */
+/* === RESPONSIVE DESIGN OPTIMISÉ === */
 
-/* Écrans larges (Desktop) */
+/* Desktop large (1200px+) */
 @media (min-width: 1200px) {
     #f1-circuits-sidebar {
         width: 450px;
@@ -186,10 +308,25 @@ canvas {
     .tp-dfwv {
         scale: 1.1;
     }
+
+    #view-controls {
+        scale: 1.1;
+    }
 }
 
-/* Tablettes */
-@media (max-width: 1024px) {
+/* Desktop standard (1024px - 1199px) */
+@media (max-width: 1199px) and (min-width: 1024px) {
+    #f1-circuits-sidebar {
+        width: 400px;
+    }
+
+    .tp-dfwv {
+        scale: 1;
+    }
+}
+
+/* Tablettes (769px - 1023px) */
+@media (max-width: 1023px) and (min-width: 769px) {
     #f1-circuits-sidebar {
         width: 380px !important;
     }
@@ -206,62 +343,68 @@ canvas {
         scale: 0.9;
     }
 
-    #circuit-details {
+    #circuit-info {
         left: 10px !important;
         bottom: 10px !important;
         max-width: calc(100vw - 400px) !important;
     }
-
-    #welcome-message,
-    #help-modal > div {
-        margin: 0 20px;
-        max-width: calc(100vw - 40px);
-    }
 }
 
-/* Tablettes portrait et mobiles paysage */
+/* MOBILE (768px et moins) - Interface simplifiée */
 @media (max-width: 768px) {
+    /* Masquer la sidebar desktop */
     #f1-circuits-sidebar {
-        width: 100vw !important;
-        height: 50vh !important;
-        top: auto !important;
-        bottom: 0 !important;
-        border-left: none !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 20px 20px 0 0 !important;
+        display: none !important;
     }
 
-    .f1-circuit-card {
-        margin-bottom: 12px !important;
+    /* Afficher le menu mobile */
+    #f1-mobile-menu {
+        display: block !important;
     }
 
-    .f1-circuit-card > div:first-child {
-        height: 100px !important;
-    }
-
+    /* Ajuster les contrôles pour mobile */
     .tp-dfwv {
         left: 10px !important;
-        top: 10px !important;
+        top: 80px !important; /* Décalé pour éviter le menu mobile */
         scale: 0.8;
+        max-width: calc(50vw - 20px);
     }
 
-    #circuit-details {
+    #view-controls {
+        right: 10px !important;
+        top: 80px !important; /* Décalé pour éviter le menu mobile */
+        scale: 0.8;
+        max-width: calc(50vw - 20px);
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+
+    /* Circuit info adapté mobile */
+    #circuit-info {
         left: 10px !important;
         right: 10px !important;
-        bottom: 52vh !important;
+        bottom: 10px !important;
         max-width: none !important;
         padding: 20px !important;
         font-size: 14px;
+        /* Évite que le menu mobile le recouvre */
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
     }
 
-    #circuit-details h3 {
+    #circuit-info h3 {
         font-size: 16px !important;
     }
 
+    /* Modales mobile */
     #welcome-message {
-        margin: 0 15px;
-        max-width: calc(100vw - 30px);
+        margin: 10px;
+        max-width: calc(100vw - 20px);
         padding: 25px !important;
+        top: 50% !important;
+        /* Évite le menu mobile */
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
     }
 
     #welcome-message h2 {
@@ -273,56 +416,57 @@ canvas {
     }
 
     #help-modal > div {
-        margin: 15px;
-        max-width: calc(100vw - 30px);
-        max-height: calc(100vh - 30px);
+        margin: 10px;
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 80px);
         padding: 25px !important;
+        overflow-y: auto;
+    }
+
+    /* Amélioration zone tactile mobile */
+    button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+
+    /* Optimisation canvas mobile */
+    canvas {
+        /* Empêche les gestes par défaut du navigateur */
+        touch-action: none;
+        /* Améliore les performances */
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
     }
 }
 
-/* Mobiles portrait */
+/* Petits mobiles (480px et moins) */
 @media (max-width: 480px) {
-    #f1-circuits-sidebar {
-        height: 45vh !important;
-        border-radius: 15px 15px 0 0 !important;
-    }
-
-    .f1-circuit-card {
-        margin-bottom: 10px !important;
-    }
-
-    .f1-circuit-card > div:first-child {
-        height: 80px !important;
-    }
-
-    .f1-circuit-card h3 {
-        font-size: 13px !important;
-    }
-
-    .f1-circuit-card p,
-    .f1-circuit-card span {
-        font-size: 11px !important;
-    }
-
     .tp-dfwv {
         scale: 0.7;
         left: 5px !important;
-        top: 5px !important;
+        top: 75px !important;
+        max-width: calc(45vw - 10px);
     }
 
-    #circuit-details {
+    #view-controls {
+        scale: 0.7;
+        right: 5px !important;
+        top: 75px !important;
+        max-width: calc(45vw - 10px);
+    }
+
+    #circuit-info {
         padding: 15px !important;
         font-size: 13px !important;
-        bottom: 47vh !important;
     }
 
-    #circuit-details h3 {
+    #circuit-info h3 {
         font-size: 15px !important;
     }
 
     #welcome-message {
         padding: 20px !important;
-        margin: 10px;
+        margin: 5px;
     }
 
     #welcome-message h2 {
@@ -332,44 +476,54 @@ canvas {
     #welcome-message p {
         font-size: 13px !important;
     }
+
+    /* Menu mobile compact pour très petits écrans */
+    #mobile-header {
+        padding: 10px 15px !important;
+    }
+
+    #mobile-header h3 {
+        font-size: 14px !important;
+    }
+
+    #mobile-header p {
+        font-size: 11px !important;
+    }
+
+    #menu-toggle {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
+
+    .mobile-circuit-item {
+        padding: 12px !important;
+        min-height: 50px !important;
+    }
+
+    .mobile-circuit-item h4 {
+        font-size: 13px !important;
+    }
+
+    .mobile-circuit-item p {
+        font-size: 10px !important;
+    }
 }
 
-/* === ANIMATIONS ET TRANSITIONS === */
+/* === OPTIMISATIONS PERFORMANCES === */
 
-/* Transition douce pour tous les éléments interactifs */
-button, .f1-circuit-card, #circuit-details {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Effet de focus pour l'accessibilité */
-button:focus,
-.f1-circuit-card:focus,
-*:focus-visible {
-    outline: 2px solid #ff4444;
-    outline-offset: 2px;
-}
-
-/* Amélioration des contrastes pour la lisibilité */
-h1, h2, h3, h4, h5, h6 {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-p, span, div {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-}
-
-/* === PERFORMANCES === */
-
-/* Accélération GPU pour les éléments animés */
-#circuit-details,
-#f1-circuits-sidebar,
-.f1-circuit-card,
+/* GPU acceleration pour les éléments animés */
+.mobile-circuit-item,
+.desktop-circuit-card,
+#circuit-info,
 #view-controls,
 #welcome-message,
 #help-modal > div,
-.tp-dfwv {
+.tp-dfwv,
+#mobile-header,
+#mobile-dropdown {
     will-change: transform;
     transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 
 /* Mode performances réduites */
@@ -382,11 +536,38 @@ p, span, div {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+
+    /* Désactive les transformations d'hover sur mobile */
+    @media (hover: none) {
+        button:hover,
+        .mobile-circuit-item:hover,
+        .desktop-circuit-card:hover {
+            transform: none !important;
+        }
+    }
 }
 
 /* === SCROLLBARS PERSONNALISÉES === */
 
-/* WebKit (Chrome, Safari) */
+/* Scrollbar mobile menu */
+#mobile-dropdown::-webkit-scrollbar {
+    width: 3px;
+}
+
+#mobile-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#mobile-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 68, 68, 0.4);
+    border-radius: 2px;
+}
+
+#mobile-dropdown::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 68, 68, 0.6);
+}
+
+/* Scrollbar sidebar desktop */
 #f1-circuits-sidebar::-webkit-scrollbar {
     width: 4px;
 }
@@ -404,13 +585,7 @@ p, span, div {
     background: rgba(255, 68, 68, 0.5);
 }
 
-/* Firefox */
-#f1-circuits-sidebar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 68, 68, 0.3) transparent;
-}
-
-/* Scrollbar générale */
+/* Scrollbar générales */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -430,25 +605,49 @@ p, span, div {
     background: rgba(255, 255, 255, 0.4);
 }
 
-/* === ÉTATS DES CURSEURS === */
-
-canvas {
-    cursor: grab;
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 68, 68, 0.3) transparent;
 }
 
-canvas:active {
-    cursor: grabbing;
+/* === AMÉLIORATIONS TACTILES === */
+
+/* Supprime les highlights bleus sur mobile */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-focus-ring-color: transparent;
 }
 
-canvas.pointer {
-    cursor: pointer;
+/* Zone tactile minimum pour tous les éléments interactifs */
+button,
+.mobile-circuit-item,
+.desktop-circuit-card,
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
 }
 
-.f1-circuit-card {
-    cursor: pointer;
+/* Améliore la réactivité des boutons sur tactile */
+@media (hover: none) and (pointer: coarse) {
+    button:hover,
+    .mobile-circuit-item:hover,
+    .desktop-circuit-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    button:active,
+    .mobile-circuit-item:active,
+    .desktop-circuit-card:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
 }
 
-/* === THÈME ET VARIABLES CSS === */
+/* === THÈME ET VARIABLES === */
 
 :root {
     --primary-color: #ff4444;
@@ -466,6 +665,11 @@ canvas.pointer {
     --success-color: #51cf66;
     --f1-red: #ff4444;
     --backdrop-blur: blur(15px);
+
+    /* Variables mobile */
+    --mobile-header-height: 60px;
+    --mobile-padding: 15px;
+    --touch-target-size: 44px;
 }
 
 /* === UTILITAIRES === */
@@ -478,12 +682,22 @@ canvas.pointer {
     display: block !important;
 }
 
-.fade-in {
-    animation: fadeIn 0.5s ease-in-out;
+.mobile-only {
+    display: none;
 }
 
-.fade-out {
-    animation: fadeOut 0.5s ease-in-out;
+.desktop-only {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .mobile-only {
+        display: block !important;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
 }
 
 .no-select {
@@ -493,58 +707,30 @@ canvas.pointer {
     -ms-user-select: none;
 }
 
-.pointer {
-    cursor: pointer;
+.touch-optimized {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.grab {
-    cursor: grab;
-}
+/* === COMPATIBILITÉ NAVIGATEURS === */
 
-.grabbing {
-    cursor: grabbing;
-}
-
-/* === COMPATIBILITÉ ET POLYFILLS === */
-
-/* Support des anciens navigateurs pour backdrop-filter */
-.tp-dfwv,
-#f1-circuits-sidebar,
-#view-controls,
-#circuit-details,
-#welcome-message,
-#help-modal > div {
-    -webkit-backdrop-filter: var(--backdrop-blur);
-    backdrop-filter: var(--backdrop-blur);
-}
-
-/* Support touch pour les appareils tactiles */
-@media (hover: none) and (pointer: coarse) {
-    button:hover,
-    .f1-circuit-card:hover {
-        transform: none;
-        box-shadow: none;
-    }
-
-    button:active,
-    .f1-circuit-card:active {
-        transform: scale(0.95);
-    }
-
-    /* Taille tactile minimum */
-    button {
-        min-height: 44px;
-        min-width: 44px;
+/* Support backdrop-filter */
+@supports not (backdrop-filter: blur(10px)) {
+    .tp-dfwv,
+    #f1-circuits-sidebar,
+    #f1-mobile-menu,
+    #view-controls,
+    #circuit-info,
+    #welcome-message,
+    #help-modal > div {
+        background: rgba(0, 0, 0, 0.9) !important;
     }
 }
 
-/* === STYLES POUR DARK MODE (par défaut) === */
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --primary-color: #ff4444;
-        --background-color: #000000;
-        --text-color: #ffffff;
+/* Support aspect-ratio pour images */
+@supports not (aspect-ratio: 1) {
+    .desktop-circuit-card > div:first-child {
+        height: 140px;
     }
 }
 
@@ -552,7 +738,8 @@ canvas.pointer {
 
 @media print {
     #f1-circuits-sidebar,
-    #circuit-details,
+    #f1-mobile-menu,
+    #circuit-info,
     #view-controls,
     .tp-dfwv,
     #welcome-message,
@@ -563,424 +750,5 @@ canvas.pointer {
     canvas {
         max-width: 100%;
         height: auto;
-    }
-}/* style.css - Styles mis à jour */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html, body {
-    height: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #000;
-    overflow: hidden;
-    cursor: default;
-}
-
-#app {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-}
-
-canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    outline: none;
-    user-select: none;
-    touch-action: none; /* Empêche le zoom sur mobile */
-}
-
-/* === INTERFACE UTILISATEUR === */
-
-/* Tweakpane (panneau de contrôle gauche) */
-.tp-dfwv {
-    position: fixed !important;
-    top: 20px !important;
-    left: 20px !important;
-    z-index: 1000 !important;
-    background: rgba(0, 0, 0, 0.85) !important;
-    backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 10px !important;
-    font-size: 12px !important;
-}
-
-/* Panneau de contrôle des vues (droite) */
-#view-controls {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-#view-controls button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(255, 0, 0, 0.3);
-}
-
-#view-controls button:active {
-    transform: translateY(0);
-}
-
-/* === INFORMATIONS DES CIRCUITS === */
-
-#circuit-info {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    animation: slideInFromBottom 0.4s ease-out;
-}
-
-@keyframes slideInFromBottom {
-    from {
-        transform: translateY(100px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-#circuit-info button:hover {
-    background: #cc0000 !important;
-    transform: scale(1.05);
-}
-
-/* === MODALES ET MESSAGES === */
-
-#welcome-message,
-#help-modal > div {
-    animation: modalFadeIn 0.5s ease-out;
-}
-
-@keyframes modalFadeIn {
-    from {
-        transform: translate(-50%, -50%) scale(0.9);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.9);
-    }
-}
-
-/* Styles pour les boutons dans les modales */
-#welcome-message button:hover,
-#help-modal button:hover {
-    background: #cc0000 !important;
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
-}
-
-/* === LOADING ET ERREURS === */
-
-.loading-spinner {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 50px;
-    height: 50px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top: 3px solid #ff0000;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    z-index: 4000;
-}
-
-@keyframes spin {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
-
-/* === RESPONSIVE DESIGN === */
-
-/* Tablettes */
-@media (max-width: 1024px) {
-    .tp-dfwv {
-        left: 10px !important;
-        top: 10px !important;
-        scale: 0.9;
-    }
-
-    #view-controls {
-        right: 10px !important;
-        top: 10px !important;
-        scale: 0.9;
-    }
-
-    #circuit-info {
-        left: 10px !important;
-        bottom: 10px !important;
-        right: 10px !important;
-        max-width: none !important;
-    }
-
-    #welcome-message,
-    #help-modal > div {
-        margin: 0 20px;
-        max-width: calc(100vw - 40px);
-    }
-}
-
-/* Mobiles */
-@media (max-width: 768px) {
-    .tp-dfwv {
-        left: 5px !important;
-        top: 5px !important;
-        scale: 0.8;
-    }
-
-    #view-controls {
-        right: 5px !important;
-        top: 5px !important;
-        scale: 0.8;
-        max-height: 60vh;
-        overflow-y: auto;
-    }
-
-    #circuit-info {
-        left: 5px !important;
-        bottom: 5px !important;
-        right: 5px !important;
-        padding: 15px !important;
-        font-size: 14px;
-    }
-
-    #circuit-info h3 {
-        font-size: 16px !important;
-    }
-
-    #welcome-message {
-        margin: 0 10px;
-        max-width: calc(100vw - 20px);
-        padding: 20px !important;
-    }
-
-    #welcome-message h2 {
-        font-size: 20px !important;
-    }
-
-    #welcome-message p {
-        font-size: 14px !important;
-    }
-
-    #help-modal > div {
-        margin: 10px;
-        max-width: calc(100vw - 20px);
-        max-height: calc(100vh - 20px);
-        padding: 20px !important;
-    }
-}
-
-/* Très petits écrans */
-@media (max-width: 480px) {
-    .tp-dfwv {
-        scale: 0.7;
-    }
-
-    #view-controls {
-        scale: 0.7;
-    }
-
-    #circuit-info {
-        padding: 10px !important;
-        font-size: 12px;
-    }
-
-    #welcome-message {
-        padding: 15px !important;
-    }
-
-    #welcome-message h2 {
-        font-size: 18px !important;
-    }
-}
-
-/* === ANIMATIONS ET TRANSITIONS === */
-
-/* Transition douce pour tous les boutons */
-button {
-    transition: all 0.3s ease;
-    font-family: inherit;
-}
-
-/* Effet de focus pour l'accessibilité */
-button:focus,
-*:focus {
-    outline: 2px solid #ff4444;
-    outline-offset: 2px;
-}
-
-/* Amélioration des contrastes pour la lisibilité */
-h1, h2, h3, h4, h5, h6 {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-p, span, div {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-}
-
-/* === PERFORMANCES === */
-
-/* Acceleration GPU pour les éléments animés */
-#circuit-info,
-#view-controls,
-#welcome-message,
-#help-modal > div,
-.tp-dfwv {
-    will-change: transform;
-    transform: translateZ(0);
-}
-
-/* Mode performances réduites */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-}
-
-/* === SCROLLBARS PERSONNALISÉES === */
-
-/* WebKit (Chrome, Safari) */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-}
-
-/* Firefox */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-}
-
-/* === ÉTATS DES CURSEURS === */
-
-canvas {
-    cursor: grab;
-}
-
-canvas:active {
-    cursor: grabbing;
-}
-
-canvas.pointer {
-    cursor: pointer;
-}
-
-/* === THÈME ET VARIABLES CSS === */
-
-:root {
-    --primary-color: #ff0000;
-    --primary-dark: #cc0000;
-    --secondary-color: #ffffff;
-    --background-color: #000000;
-    --surface-color: rgba(255, 255, 255, 0.05);
-    --surface-hover: rgba(255, 255, 255, 0.1);
-    --text-color: #ffffff;
-    --text-secondary: #cccccc;
-    --border-color: rgba(255, 255, 255, 0.1);
-    --shadow-color: rgba(0, 0, 0, 0.3);
-    --error-color: #ff6b6b;
-    --success-color: #51cf66;
-}
-
-/* === UTILITAIRES === */
-
-.hidden {
-    display: none !important;
-}
-
-.visible {
-    display: block !important;
-}
-
-.fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-.fade-out {
-    animation: fadeOut 0.5s ease-in-out;
-}
-
-.no-select {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-}
-
-.pointer {
-    cursor: pointer;
-}
-
-.grab {
-    cursor: grab;
-}
-
-.grabbing {
-    cursor: grabbing;
-}
-
-/* === COMPATIBILITÉ === */
-
-/* Support des anciens navigateurs */
-.tp-dfwv {
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-}
-
-#view-controls,
-#circuit-info,
-#welcome-message,
-#help-modal > div {
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-}
-
-/* Support touch pour les appareils tactiles */
-@media (hover: none) and (pointer: coarse) {
-    button:hover {
-        transform: none;
-        box-shadow: none;
-    }
-
-    button:active {
-        transform: scale(0.95);
     }
 }
