@@ -3,7 +3,7 @@ import { F1_CIRCUITS_2025 } from './CircuitMarkers.js';
 
 export class InteractiveSidebar {
   constructor(onCircuitSelect, globe) {
-    this.onCircuitSelect = onCircuitSelect;
+    this.onCircuitSelect = typeof onCircuitSelect === 'function' ? onCircuitSelect : () => {};
     this.globe = globe;
     this.selectedIndex = -1;
     this.hoveredIndex = -1;

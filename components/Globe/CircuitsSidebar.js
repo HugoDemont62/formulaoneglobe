@@ -1,5 +1,6 @@
 // components/Globe/CircuitsSidebar.js - Version mobile optimisée
 import { F1_CIRCUITS_2025 } from './CircuitMarkers.js';
+import { InteractiveSidebar } from './InteractiveSidebar.js';
 
 /**
  * Sidebar responsive avec menu déroulant pour mobile
