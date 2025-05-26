@@ -249,7 +249,7 @@ export default class CircuitsSidebar {
         this.selectCircuit(index);
         this.closeMobileMenu();
 
-        if (this.onCircuitSelect) {
+        if (typeof this.onCircuitSelect === 'function') {
           this.onCircuitSelect(circuit, index);
         }
       }
@@ -269,7 +269,7 @@ export default class CircuitsSidebar {
       this.selectCircuit(index);
       this.closeMobileMenu();
 
-      if (this.onCircuitSelect) {
+      if (typeof this.onCircuitSelect === 'function') {
         this.onCircuitSelect(circuit, index);
       }
     });
@@ -475,7 +475,7 @@ export default class CircuitsSidebar {
 
     card.addEventListener('click', () => {
       this.selectCircuit(index);
-      if (this.onCircuitSelect) {
+      if (typeof this.onCircuitSelect === 'function') {
         this.onCircuitSelect(circuit, index);
       }
     });

@@ -6,6 +6,12 @@ import Globe from './components/Globe.js';
 import Light from './components/Light.js';
 import { Pane } from 'tweakpane';
 import Slider from './components/Slider.js';
+import CircuitsSidebar from './components/Globe/CircuitsSidebar.js';
+
+const sidebar = new CircuitsSidebar((circuit, index) => {
+    // Votre logique ici
+    console.log('Circuit sélectionné :', circuit, index);
+});
 
 let canvas, webgl, renderer;
 
