@@ -3,6 +3,7 @@ import {
   SphereGeometry,
   BoxGeometry,
   MeshBasicMaterial,
+  MeshStandardMaterial,
   Mesh,
   Group,
   Vector3
@@ -215,7 +216,7 @@ export default class CircuitMarkers {
    * @param {number} radius - Rayon de la sphère (par défaut 2.05 pour être au-dessus de la terre)
    * @returns {Vector3} Position 3D sur la sphère
    */
-  geoToVector3(lat, lng, radius = 2.05) {
+  geoToVector3(lat, lng, radius = 1.05) {
     // Conversion degrés vers radians
     const phi = (90 - lat) * (Math.PI / 180);
     const theta = (lng + 180) * (Math.PI / 180);
@@ -255,7 +256,7 @@ export default class CircuitMarkers {
 
     // Point rouge central (plus visible)
     const pointGeometry = new SphereGeometry(0.02, 12, 12);
-    const pointMaterial = new MeshBasicMaterial({
+    const pointMaterial = new MeshStandardMaterial({
       color: 0xff0000,
       emissive: 0x440000 // Légère émission pour le faire briller
     });

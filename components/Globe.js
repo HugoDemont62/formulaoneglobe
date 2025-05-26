@@ -82,23 +82,23 @@ export default class Globe {
     }
   }
 
-  /**
-   * Crée la sphère terrestre
-   */
   async createEarth() {
     console.log('🌍 Création de la Terre...');
 
     this.earthSphere = new EarthSphere();
-    const earthMesh = this.earthSphere.getMesh();
 
+    // ⏳ Attend que l'init se termine
+    await this.earthSphere.ready;
+
+    const earthMesh = this.earthSphere.getMesh();
     if (earthMesh) {
       this.group.add(earthMesh);
       console.log('✅ Terre ajoutée au globe');
-
-      // Tentative de chargement d'une texture si disponible
-      // this.earthSphere.loadTexture('./assets/earth-texture.jpg');
+    } else {
+      console.warn('⚠️ earthMesh est null après init');
     }
   }
+
 
   /**
    * Crée les marqueurs des circuits F1
