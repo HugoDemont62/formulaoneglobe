@@ -1,12 +1,14 @@
-// vite.config.js
+// Fichier: vite.config.js
+// Configuration Vite simplifiée et optimisée pour le déploiement Vercel
+
 import glslify from 'rollup-plugin-glslify';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
     plugins: [glslify()],
 
-    // Configuration pour GitHub Pages
-    base: process.env.NODE_ENV === 'production' ? '/globe-f1-2025/' : '/',
+    // Configuration pour le déploiement (GitHub Pages ou Vercel)
+    base: './', // Chemins relatifs pour une meilleure compatibilité
 
     // Optimisations de build
     build: {
@@ -14,7 +16,10 @@ export default defineConfig({
         outDir: 'dist',
         assetsDir: 'assets',
         sourcemap: false,
-        minify: 'terser',
+
+        // Utiliser esbuild (inclus par défaut) au lieu de terser
+        minify: 'esbuild',
+
         rollupOptions: {
             output: {
                 manualChunks: {
@@ -22,6 +27,19 @@ export default defineConfig({
                     gsap: ['gsap'],
                     tweakpane: ['tweakpane']
                 }
+            },
+
+            // Gestion des warnings sans casser le build
+            onwarn(warning, warn) {
+                // Ignorer les warnings d'eval pour les modules Three.js
+                if (warning.code === 'EVAL') {
+                    return;
+                }
+                // Ignorer les warnings de modules externes
+                if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+                    return;
+                }
+                warn(warning);
             }
         }
     },
@@ -35,6 +53,10 @@ export default defineConfig({
 
     // Optimisations des dépendances
     optimizeDeps: {
-        include: ['three', 'gsap', 'tweakpane']
+        include: ['three', 'gsap', 'tweakpane'],
+        exclude: [
+            // Exclure les modules problématiques
+            'three/examples/jsm/libs/lottie_canvas.module.js'
+        ]
     }
 });
