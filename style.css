@@ -1,4 +1,570 @@
-/* style.css */
+/* style.css - Styles mis à jour pour Globe F1 2025 */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #000;
+    overflow: hidden;
+    cursor: default;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    user-select: none;
+    touch-action: none;
+}
+
+/* === SIDEBAR F1 CIRCUITS === */
+
+#f1-circuits-sidebar {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation pour les cartes de circuits */
+.f1-circuit-card {
+    transform: translateZ(0); /* Activation GPU */
+}
+
+.f1-circuit-card:hover {
+    transform: translateY(-2px) translateZ(0);
+}
+
+.f1-circuit-card.selected {
+    transform: translateY(-3px) translateZ(0);
+}
+
+/* === DÉTAILS DU CIRCUIT === */
+
+#circuit-details {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+#circuit-details button:hover {
+    background: #cc0000 !important;
+    transform: scale(1.02);
+}
+
+#circuit-details button:active {
+    transform: scale(0.98);
+}
+
+/* Animation pour les détails */
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* === TWEAKPANE (PANNEAU GAUCHE) === */
+
+.tp-dfwv {
+    position: fixed !important;
+    top: 20px !important;
+    left: 20px !important;
+    z-index: 1000 !important;
+    background: rgba(0, 0, 0, 0.85) !important;
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* === CONTRÔLES DE VUE (SI UTILISÉS) === */
+
+#view-controls {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+#view-controls button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(255, 68, 68, 0.3);
+}
+
+#view-controls button:active {
+    transform: translateY(0);
+}
+
+/* === MODALES ET MESSAGES === */
+
+#welcome-message,
+#help-modal > div {
+    animation: modalFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+@keyframes modalFadeIn {
+    from {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+}
+
+/* Styles pour les boutons dans les modales */
+#welcome-message button:hover,
+#help-modal button:hover {
+    background: #cc0000 !important;
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(255, 0, 0, 0.4);
+}
+
+#welcome-message button:active,
+#help-modal button:active {
+    transform: scale(0.98);
+}
+
+/* === LOADING ET ERREURS === */
+
+.loading-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid #ff4444;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 4000;
+}
+
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* === RESPONSIVE DESIGN === */
+
+/* Écrans larges (Desktop) */
+@media (min-width: 1200px) {
+    #f1-circuits-sidebar {
+        width: 450px;
+    }
+
+    .tp-dfwv {
+        scale: 1.1;
+    }
+}
+
+/* Tablettes */
+@media (max-width: 1024px) {
+    #f1-circuits-sidebar {
+        width: 380px !important;
+    }
+
+    .tp-dfwv {
+        left: 10px !important;
+        top: 10px !important;
+        scale: 0.9;
+    }
+
+    #view-controls {
+        right: 10px !important;
+        top: 10px !important;
+        scale: 0.9;
+    }
+
+    #circuit-details {
+        left: 10px !important;
+        bottom: 10px !important;
+        max-width: calc(100vw - 400px) !important;
+    }
+
+    #welcome-message,
+    #help-modal > div {
+        margin: 0 20px;
+        max-width: calc(100vw - 40px);
+    }
+}
+
+/* Tablettes portrait et mobiles paysage */
+@media (max-width: 768px) {
+    #f1-circuits-sidebar {
+        width: 100vw !important;
+        height: 50vh !important;
+        top: auto !important;
+        bottom: 0 !important;
+        border-left: none !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 20px 20px 0 0 !important;
+    }
+
+    .f1-circuit-card {
+        margin-bottom: 12px !important;
+    }
+
+    .f1-circuit-card > div:first-child {
+        height: 100px !important;
+    }
+
+    .tp-dfwv {
+        left: 10px !important;
+        top: 10px !important;
+        scale: 0.8;
+    }
+
+    #circuit-details {
+        left: 10px !important;
+        right: 10px !important;
+        bottom: 52vh !important;
+        max-width: none !important;
+        padding: 20px !important;
+        font-size: 14px;
+    }
+
+    #circuit-details h3 {
+        font-size: 16px !important;
+    }
+
+    #welcome-message {
+        margin: 0 15px;
+        max-width: calc(100vw - 30px);
+        padding: 25px !important;
+    }
+
+    #welcome-message h2 {
+        font-size: 20px !important;
+    }
+
+    #welcome-message p {
+        font-size: 14px !important;
+    }
+
+    #help-modal > div {
+        margin: 15px;
+        max-width: calc(100vw - 30px);
+        max-height: calc(100vh - 30px);
+        padding: 25px !important;
+    }
+}
+
+/* Mobiles portrait */
+@media (max-width: 480px) {
+    #f1-circuits-sidebar {
+        height: 45vh !important;
+        border-radius: 15px 15px 0 0 !important;
+    }
+
+    .f1-circuit-card {
+        margin-bottom: 10px !important;
+    }
+
+    .f1-circuit-card > div:first-child {
+        height: 80px !important;
+    }
+
+    .f1-circuit-card h3 {
+        font-size: 13px !important;
+    }
+
+    .f1-circuit-card p,
+    .f1-circuit-card span {
+        font-size: 11px !important;
+    }
+
+    .tp-dfwv {
+        scale: 0.7;
+        left: 5px !important;
+        top: 5px !important;
+    }
+
+    #circuit-details {
+        padding: 15px !important;
+        font-size: 13px !important;
+        bottom: 47vh !important;
+    }
+
+    #circuit-details h3 {
+        font-size: 15px !important;
+    }
+
+    #welcome-message {
+        padding: 20px !important;
+        margin: 10px;
+    }
+
+    #welcome-message h2 {
+        font-size: 18px !important;
+    }
+
+    #welcome-message p {
+        font-size: 13px !important;
+    }
+}
+
+/* === ANIMATIONS ET TRANSITIONS === */
+
+/* Transition douce pour tous les éléments interactifs */
+button, .f1-circuit-card, #circuit-details {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Effet de focus pour l'accessibilité */
+button:focus,
+.f1-circuit-card:focus,
+*:focus-visible {
+    outline: 2px solid #ff4444;
+    outline-offset: 2px;
+}
+
+/* Amélioration des contrastes pour la lisibilité */
+h1, h2, h3, h4, h5, h6 {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+p, span, div {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* === PERFORMANCES === */
+
+/* Accélération GPU pour les éléments animés */
+#circuit-details,
+#f1-circuits-sidebar,
+.f1-circuit-card,
+#view-controls,
+#welcome-message,
+#help-modal > div,
+.tp-dfwv {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Mode performances réduites */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* === SCROLLBARS PERSONNALISÉES === */
+
+/* WebKit (Chrome, Safari) */
+#f1-circuits-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+#f1-circuits-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#f1-circuits-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 68, 68, 0.3);
+    border-radius: 2px;
+}
+
+#f1-circuits-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 68, 68, 0.5);
+}
+
+/* Firefox */
+#f1-circuits-sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 68, 68, 0.3) transparent;
+}
+
+/* Scrollbar générale */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* === ÉTATS DES CURSEURS === */
+
+canvas {
+    cursor: grab;
+}
+
+canvas:active {
+    cursor: grabbing;
+}
+
+canvas.pointer {
+    cursor: pointer;
+}
+
+.f1-circuit-card {
+    cursor: pointer;
+}
+
+/* === THÈME ET VARIABLES CSS === */
+
+:root {
+    --primary-color: #ff4444;
+    --primary-dark: #cc0000;
+    --secondary-color: #ffffff;
+    --background-color: #000000;
+    --surface-color: rgba(255, 255, 255, 0.05);
+    --surface-hover: rgba(255, 255, 255, 0.1);
+    --text-color: #ffffff;
+    --text-secondary: #cccccc;
+    --text-muted: #888888;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --error-color: #ff6b6b;
+    --success-color: #51cf66;
+    --f1-red: #ff4444;
+    --backdrop-blur: blur(15px);
+}
+
+/* === UTILITAIRES === */
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.fade-out {
+    animation: fadeOut 0.5s ease-in-out;
+}
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.grab {
+    cursor: grab;
+}
+
+.grabbing {
+    cursor: grabbing;
+}
+
+/* === COMPATIBILITÉ ET POLYFILLS === */
+
+/* Support des anciens navigateurs pour backdrop-filter */
+.tp-dfwv,
+#f1-circuits-sidebar,
+#view-controls,
+#circuit-details,
+#welcome-message,
+#help-modal > div {
+    -webkit-backdrop-filter: var(--backdrop-blur);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+/* Support touch pour les appareils tactiles */
+@media (hover: none) and (pointer: coarse) {
+    button:hover,
+    .f1-circuit-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    button:active,
+    .f1-circuit-card:active {
+        transform: scale(0.95);
+    }
+
+    /* Taille tactile minimum */
+    button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* === STYLES POUR DARK MODE (par défaut) === */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-color: #ff4444;
+        --background-color: #000000;
+        --text-color: #ffffff;
+    }
+}
+
+/* === PRINT STYLES === */
+
+@media print {
+    #f1-circuits-sidebar,
+    #circuit-details,
+    #view-controls,
+    .tp-dfwv,
+    #welcome-message,
+    #help-modal {
+        display: none !important;
+    }
+
+    canvas {
+        max-width: 100%;
+        height: auto;
+    }
+}/* style.css - Styles mis à jour */
 
 * {
     margin: 0;
@@ -26,70 +592,48 @@ canvas {
     height: 100%;
     outline: none;
     user-select: none;
+    touch-action: none; /* Empêche le zoom sur mobile */
 }
 
-/* Interface utilisateur */
+/* === INTERFACE UTILISATEUR === */
+
+/* Tweakpane (panneau de contrôle gauche) */
 .tp-dfwv {
     position: fixed !important;
     top: 20px !important;
     left: 20px !important;
     z-index: 1000 !important;
-    background: rgba(0, 0, 0, 0.8) !important;
+    background: rgba(0, 0, 0, 0.85) !important;
     backdrop-filter: blur(10px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 10px !important;
+    font-size: 12px !important;
 }
 
-/* Sidebar des circuits */
-#circuits-sidebar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+/* Panneau de contrôle des vues (droite) */
+#view-controls {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-#circuits-sidebar::-webkit-scrollbar {
-    width: 6px;
+#view-controls button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(255, 0, 0, 0.3);
 }
 
-#circuits-sidebar::-webkit-scrollbar-track {
-    background: transparent;
+#view-controls button:active {
+    transform: translateY(0);
 }
 
-#circuits-sidebar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
+/* === INFORMATIONS DES CIRCUITS === */
+
+#circuit-info {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    animation: slideInFromBottom 0.4s ease-out;
 }
 
-#circuits-sidebar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-}
-
-/* Cards des circuits avec animations */
-.circuit-card {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(5px);
-}
-
-.circuit-card:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.circuit-card img {
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.circuit-card:hover img {
-    transform: scale(1.05);
-    opacity: 1;
-}
-
-/* Détails du circuit */
-#circuit-details {
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
+@keyframes slideInFromBottom {
     from {
-        transform: translateY(20px);
+        transform: translateY(100px);
         opacity: 0;
     }
     to {
@@ -98,13 +642,19 @@ canvas {
     }
 }
 
-/* Messages et modales */
-#welcome-message,
-#help-modal > div {
-    animation: fadeInScale 0.5s ease-out;
+#circuit-info button:hover {
+    background: #cc0000 !important;
+    transform: scale(1.05);
 }
 
-@keyframes fadeInScale {
+/* === MODALES ET MESSAGES === */
+
+#welcome-message,
+#help-modal > div {
+    animation: modalFadeIn 0.5s ease-out;
+}
+
+@keyframes modalFadeIn {
     from {
         transform: translate(-50%, -50%) scale(0.9);
         opacity: 0;
@@ -115,22 +665,27 @@ canvas {
     }
 }
 
-/* Boutons stylisés */
-button {
-    transition: all 0.3s ease;
-    font-family: inherit;
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
 }
 
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+/* Styles pour les boutons dans les modales */
+#welcome-message button:hover,
+#help-modal button:hover {
+    background: #cc0000 !important;
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
 }
 
-button:active {
-    transform: translateY(0);
-}
+/* === LOADING ET ERREURS === */
 
-/* Loading spinner (optionnel) */
 .loading-spinner {
     position: fixed;
     top: 50%;
@@ -146,30 +701,35 @@ button:active {
 }
 
 @keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
 }
 
-/* Responsive design */
+/* === RESPONSIVE DESIGN === */
+
+/* Tablettes */
 @media (max-width: 1024px) {
-    #circuits-sidebar {
-        width: 300px !important;
-        padding: 15px 10px !important;
-    }
-
-    .circuit-card {
-        margin-bottom: 15px !important;
-    }
-
-    .circuit-card > div {
-        height: 150px !important;
-    }
-
-    #circuit-details {
+    .tp-dfwv {
         left: 10px !important;
+        top: 10px !important;
+        scale: 0.9;
+    }
+
+    #view-controls {
+        right: 10px !important;
+        top: 10px !important;
+        scale: 0.9;
+    }
+
+    #circuit-info {
+        left: 10px !important;
+        bottom: 10px !important;
         right: 10px !important;
         max-width: none !important;
-        bottom: 10px !important;
     }
 
     #welcome-message,
@@ -179,115 +739,117 @@ button:active {
     }
 }
 
+/* Mobiles */
 @media (max-width: 768px) {
-    #circuits-sidebar {
-        width: 100vw !important;
-        height: 40vh !important;
-        top: auto !important;
-        bottom: 0 !important;
-        border-left: none !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 15px 15px 0 0 !important;
+    .tp-dfwv {
+        left: 5px !important;
+        top: 5px !important;
+        scale: 0.8;
     }
 
-    .circuit-card {
-        display: flex;
-        margin-bottom: 10px !important;
+    #view-controls {
+        right: 5px !important;
+        top: 5px !important;
+        scale: 0.8;
+        max-height: 60vh;
+        overflow-y: auto;
     }
 
-    .circuit-card > div {
-        width: 120px;
-        height: 80px !important;
-        flex-shrink: 0;
+    #circuit-info {
+        left: 5px !important;
+        bottom: 5px !important;
+        right: 5px !important;
+        padding: 15px !important;
+        font-size: 14px;
     }
 
-    .circuit-card h3 {
+    #circuit-info h3 {
+        font-size: 16px !important;
+    }
+
+    #welcome-message {
+        margin: 0 10px;
+        max-width: calc(100vw - 20px);
+        padding: 20px !important;
+    }
+
+    #welcome-message h2 {
+        font-size: 20px !important;
+    }
+
+    #welcome-message p {
         font-size: 14px !important;
     }
 
-    .circuit-card p {
-        font-size: 12px !important;
+    #help-modal > div {
+        margin: 10px;
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+        padding: 20px !important;
     }
+}
 
+/* Très petits écrans */
+@media (max-width: 480px) {
     .tp-dfwv {
-        top: 10px !important;
-        left: 10px !important;
-        scale: 0.9;
+        scale: 0.7;
+    }
+
+    #view-controls {
+        scale: 0.7;
+    }
+
+    #circuit-info {
+        padding: 10px !important;
+        font-size: 12px;
+    }
+
+    #welcome-message {
+        padding: 15px !important;
+    }
+
+    #welcome-message h2 {
+        font-size: 18px !important;
     }
 }
 
-/* Animations de marqueurs */
-@keyframes pulse {
-    0%, 100% {
-        opacity: 0.8;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.1);
-    }
-}
+/* === ANIMATIONS ET TRANSITIONS === */
 
-/* Style du curseur sur le canvas */
-canvas {
-    cursor: grab;
-}
-
-canvas:active {
-    cursor: grabbing;
+/* Transition douce pour tous les boutons */
+button {
+    transition: all 0.3s ease;
+    font-family: inherit;
 }
 
 /* Effet de focus pour l'accessibilité */
 button:focus,
-.circuit-card:focus {
-    outline: 2px solid #ff0000;
+*:focus {
+    outline: 2px solid #ff4444;
     outline-offset: 2px;
 }
 
-/* Amélioration des contrastes */
-h2, h3 {
+/* Amélioration des contrastes pour la lisibilité */
+h1, h2, h3, h4, h5, h6 {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-p {
+p, span, div {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
-/* Performance et GPU acceleration */
-.circuit-card,
-#circuit-details,
+/* === PERFORMANCES === */
+
+/* Acceleration GPU pour les éléments animés */
+#circuit-info,
+#view-controls,
 #welcome-message,
-#help-modal > div {
+#help-modal > div,
+.tp-dfwv {
     will-change: transform;
     transform: translateZ(0);
 }
 
-/* Style pour les tooltips (si ajoutés plus tard) */
-.tooltip {
-    position: absolute;
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    pointer-events: none;
-    z-index: 5000;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-}
-
-/* Thème sombre par défaut */
-:root {
-    --primary-color: #ff0000;
-    --secondary-color: #ffffff;
-    --background-color: #000000;
-    --surface-color: rgba(255, 255, 255, 0.05);
-    --text-color: #ffffff;
-    --text-secondary: #cccccc;
-    --border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Mode haute performance (réduit les effets visuels) */
+/* Mode performances réduites */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -296,5 +858,129 @@ p {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+}
+
+/* === SCROLLBARS PERSONNALISÉES === */
+
+/* WebKit (Chrome, Safari) */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* === ÉTATS DES CURSEURS === */
+
+canvas {
+    cursor: grab;
+}
+
+canvas:active {
+    cursor: grabbing;
+}
+
+canvas.pointer {
+    cursor: pointer;
+}
+
+/* === THÈME ET VARIABLES CSS === */
+
+:root {
+    --primary-color: #ff0000;
+    --primary-dark: #cc0000;
+    --secondary-color: #ffffff;
+    --background-color: #000000;
+    --surface-color: rgba(255, 255, 255, 0.05);
+    --surface-hover: rgba(255, 255, 255, 0.1);
+    --text-color: #ffffff;
+    --text-secondary: #cccccc;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --error-color: #ff6b6b;
+    --success-color: #51cf66;
+}
+
+/* === UTILITAIRES === */
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.fade-out {
+    animation: fadeOut 0.5s ease-in-out;
+}
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.grab {
+    cursor: grab;
+}
+
+.grabbing {
+    cursor: grabbing;
+}
+
+/* === COMPATIBILITÉ === */
+
+/* Support des anciens navigateurs */
+.tp-dfwv {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+#view-controls,
+#circuit-info,
+#welcome-message,
+#help-modal > div {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+/* Support touch pour les appareils tactiles */
+@media (hover: none) and (pointer: coarse) {
+    button:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    button:active {
+        transform: scale(0.95);
     }
 }
